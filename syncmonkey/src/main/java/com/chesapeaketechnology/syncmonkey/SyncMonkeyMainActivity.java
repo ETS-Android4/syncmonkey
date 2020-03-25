@@ -61,7 +61,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         findViewById(R.id.button).setOnClickListener(listener -> runSyncAdapter());
 
         // Install the defaults specified in the XML preferences file, this is only done the first time the app is opened
-        androidx.preference.PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         copyDefaultSharedPreferencesToTrayPreferences();
 
         ActivityCompat.requestPermissions(this, new String[]{
