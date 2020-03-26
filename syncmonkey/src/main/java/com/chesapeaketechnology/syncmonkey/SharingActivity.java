@@ -42,26 +42,35 @@ public class SharingActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sharing);
-
-        final Button shareButton = findViewById(R.id.shareButton);
-        shareButton.setOnClickListener(view -> {
-            if (copySharedFilesToSyncMonkeyDirectory())
-            {
-                FileUploadSyncAdapter.runSyncAdapterNow(getApplicationContext());
-                finish();
-            }
-        });
-
-        final Button cancelButton = findViewById(R.id.cancelButton);
-        cancelButton.setOnClickListener(view -> finish());
-
         try
         {
             // Get intent, action and MIME type
             final Intent intent = getIntent();
             final String action = intent.getAction();
             final String type = intent.getType();
+
+            if (SyncMonkeyConstants.ACTION_SEND_FILE_NO_UI.equals(action) || SyncMonkeyConstants.ACTION_SEND_MULTIPLE_FILE_NO_UI.equals(action))
+            {
+                // Don't inflate the UI, just go direct to copying the shared content into the private sync directory
+                copySharedFilesToSyncMonkeyDirectoryNoUi(action, intent);
+                return;
+            }
+
+            setContentView(R.layout.activity_sharing);
+
+            final Button shareButton = findViewById(R.id.shareButton);
+            shareButton.setOnClickListener(view -> {
+                final EditText fileNameEditText = findViewById(R.id.fileNameValue);
+                final String fileName = fileNameEditText.getText().toString();
+                if (copySharedFilesToSyncMonkeyDirectory(fileName))
+                {
+                    FileUploadSyncAdapter.runSyncAdapterNow(getApplicationContext());
+                    finish();
+                }
+            });
+
+            final Button cancelButton = findViewById(R.id.cancelButton);
+            cancelButton.setOnClickListener(view -> finish());
 
             if (type == null || action == null)
             {
@@ -191,6 +200,8 @@ public class SharingActivity extends AppCompatActivity
      */
     private String getFileName(Uri uri)
     {
+        if (uri == null) return null;
+
         String result = null;
         if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme()))
         {
@@ -232,22 +243,67 @@ public class SharingActivity extends AppCompatActivity
     }
 
     /**
+     * If an app used {@link SyncMonkeyConstants#ACTION_SEND_FILE_NO_UI} or
+     * {@link SyncMonkeyConstants#ACTION_SEND_MULTIPLE_FILE_NO_UI} then we don't want to display the sharing UI.
+     * Instead, just copy the file(s) and kick off the sync.
+     *
+     * @param intent The intent that contains the shared content details.
+     */
+    private void copySharedFilesToSyncMonkeyDirectoryNoUi(String action, Intent intent)
+    {
+        try
+        {
+            Log.i(LOG_TAG, "Sending the file(s) without opening the UI.");
+
+            boolean runSync = false;
+
+            switch (action)
+            {
+                case SyncMonkeyConstants.ACTION_SEND_FILE_NO_UI:
+                    sharedFileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    runSync = copySharedFilesToSyncMonkeyDirectory(createUniqueFileName(getFileName(sharedFileUri)));
+
+                    break;
+
+                case SyncMonkeyConstants.ACTION_SEND_MULTIPLE_FILE_NO_UI:
+                    sharedFileUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                    runSync = copySharedFilesToSyncMonkeyDirectory(null);
+
+                    break;
+
+                default:
+                    showSharingErrorToast();
+                    Log.e(LOG_TAG, "Unhandled No UI sharing action type");
+            }
+
+            if (runSync)
+            {
+                FileUploadSyncAdapter.runSyncAdapterNow(getApplicationContext());
+                finish();
+            }
+        } catch (Exception e)
+        {
+            showSharingErrorToast();
+            Log.e(LOG_TAG, "An attempt to share a file directly with Sync Monkey using no UI failed", e);
+        }
+    }
+
+    /**
      * Takes the current shared file(s) and copies them to the private shared directory.
      *
+     * @param fileName The file name to use as the destination file.  This value is ignored for multiple files.
      * @return True if the activity should be ended, or false if the activity should not be ended as the user can fix
      * whatever the copy error is (e.g. The file name edit text field is empty).
      */
-    private boolean copySharedFilesToSyncMonkeyDirectory()
+    private boolean copySharedFilesToSyncMonkeyDirectory(String fileName)
     {
         try
         {
             if (sharedFileUri != null)
             {
-                // A single image was shared
+                // A single file was shared
 
-                final EditText fileNameEditText = findViewById(R.id.fileNameValue);
-                final String fileName = fileNameEditText.getText().toString();
-                if (fileName.isEmpty())
+                if (fileName == null || fileName.isEmpty())
                 {
                     Toast.makeText(getApplicationContext(), R.string.sharing_error_invalid_file_name, Toast.LENGTH_SHORT).show();
                     return false;
@@ -258,7 +314,7 @@ public class SharingActivity extends AppCompatActivity
                 Toast.makeText(getApplicationContext(), R.string.sharing_success_file, Toast.LENGTH_SHORT).show();
             } else if (sharedFileUris != null)
             {
-                // Multiple images were shared
+                // Multiple files were shared
 
                 int errorCount = 0;
 
@@ -266,7 +322,7 @@ public class SharingActivity extends AppCompatActivity
                 {
                     try
                     {
-                        copySharedFile(imageUri, getFileName(imageUri));
+                        copySharedFile(imageUri, createUniqueFileName(getFileName(imageUri)));
                     } catch (Exception e)
                     {
                         errorCount++;
@@ -286,9 +342,7 @@ public class SharingActivity extends AppCompatActivity
             {
                 // Text was shared
 
-                final EditText fileNameEditText = findViewById(R.id.fileNameValue);
-                final String fileName = fileNameEditText.getText().toString();
-                if (fileName.isEmpty())
+                if (fileName == null || fileName.isEmpty())
                 {
                     Toast.makeText(getApplicationContext(), R.string.sharing_error_invalid_file_name, Toast.LENGTH_SHORT).show();
                     return false;
@@ -301,6 +355,9 @@ public class SharingActivity extends AppCompatActivity
                 }
 
                 Toast.makeText(getApplicationContext(), R.string.sharing_success_text, Toast.LENGTH_SHORT).show();
+            } else
+            {
+                Log.e(LOG_TAG, "The file/content URI/text shared to the Sync Monkey app was null");
             }
         } catch (Exception e)
         {
@@ -364,10 +421,12 @@ public class SharingActivity extends AppCompatActivity
      * the file name until a unique file name is found.
      *
      * @param fileName The file name to start with.
-     * @return A unique file name in the app's private storage sync directory.
+     * @return A unique file name in the app's private storage sync directory, or null if the provided fileName is null.
      */
     private String createUniqueFileName(String fileName)
     {
+        if (fileName == null) return null;
+
         final File privateAppFilesSyncDirectory = getPrivateAppFilesSyncDirectory();
         File potentialNewFile = new File(privateAppFilesSyncDirectory, fileName);
 

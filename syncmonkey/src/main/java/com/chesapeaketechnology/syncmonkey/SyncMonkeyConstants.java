@@ -1,5 +1,7 @@
 package com.chesapeaketechnology.syncmonkey;
 
+import android.content.Intent;
+
 /**
  * Some constants used in the App.
  *
@@ -16,6 +18,22 @@ public class SyncMonkeyConstants
     public static final String PRIVATE_SHARED_SYNC_DIRECTORY = "sharedfiles";
     public static final String DEFAULT_SHARED_TEXT_FILE_NAME = "Text_To_Share.txt";
     public static final String SYNC_MONKEY_PROPERTIES_FILE = "syncmonkey.properties";
+
+    /**
+     * A custom action that other apps can use to bypass the sharing screen and send a single file in the form of a
+     * parcelable extra {@link Intent#EXTRA_STREAM}.
+     *
+     * @since 0.1.0
+     */
+    public static final String ACTION_SEND_FILE_NO_UI = "com.chesapeaketechnology.sycnmonkey.action.SEND_FILE_NO_UI";
+
+    /**
+     * A custom action that other apps can use to bypass the sharing screen and send multiple files in the form of a
+     * parcelable array list extra {@link Intent#EXTRA_STREAM}.
+     *
+     * @since 0.1.0
+     */
+    public static final String ACTION_SEND_MULTIPLE_FILE_NO_UI = "com.chesapeaketechnology.sycnmonkey.action.SEND_MULTIPLE_FILE_NO_UI";
 
     // The authority for the sync adapter's content provider
     public static final String AUTHORITY = "com.chesapeaketechnology.sycnmonkey.provider";
