@@ -24,6 +24,11 @@ Install Android Studio to work on this code.
 
 [The Google Play Listing for this app](https://play.google.com/store/apps/details?id=)
 
+## Changelog
+
+##### [0.1.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.0) - 2020-03-30
+ * Added support for sending shared content to Sync Monkey without presenting the share UI.
+
 ## Authors
 
 * **Christian Rowlands** - *Initial work* - [christianrowlands](https://github.com/christianrowlands)

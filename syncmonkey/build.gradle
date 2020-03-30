@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply from: "../artifacts.gradle"
 
 android {
     compileSdkVersion 29
