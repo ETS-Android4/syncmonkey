@@ -49,6 +49,14 @@ public class SharingActivity extends AppCompatActivity
             final String action = intent.getAction();
             final String type = intent.getType();
 
+            // If a sync now action was sent, run the sync adapter and then finish the activity.
+            if (SyncMonkeyConstants.ACTION_SYNC_NOW.equals(action))
+            {
+                FileUploadSyncAdapter.runSyncAdapterNow(getApplicationContext());
+                finish();
+                return;
+            }
+
             if (SyncMonkeyConstants.ACTION_SEND_FILE_NO_UI.equals(action) || SyncMonkeyConstants.ACTION_SEND_MULTIPLE_FILE_NO_UI.equals(action))
             {
                 // Don't inflate the UI, just go direct to copying the shared content into the private sync directory

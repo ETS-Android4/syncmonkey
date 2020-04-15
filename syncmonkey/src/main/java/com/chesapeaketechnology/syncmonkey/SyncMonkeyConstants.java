@@ -20,6 +20,14 @@ public class SyncMonkeyConstants
     public static final String SYNC_MONKEY_PROPERTIES_FILE = "syncmonkey.properties";
 
     /**
+     * A custom action that other apps can use to trigger a sync in the Sync Monkey App.  Sending an intent with this
+     * action will kick off a running of rclone to upload the content of the local directories to the remote system.
+     *
+     * @since 0.1.1
+     */
+    public static final String ACTION_SYNC_NOW = "com.chesapeaketechnology.sycnmonkey.action.SYNC_NOW";
+
+    /**
      * A custom action that other apps can use to bypass the sharing screen and send a single file in the form of a
      * parcelable extra {@link Intent#EXTRA_STREAM}.
      *
