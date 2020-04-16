@@ -413,7 +413,8 @@ public class SharingActivity extends AppCompatActivity
      */
     private FileOutputStream createFileOutputStream(String fileName) throws IOException
     {
-        final File privateAppFilesSyncDirectory = getPrivateAppFilesSyncDirectory();
+        final File privateAppFilesSyncDirectory
+                = SyncMonkeyUtils.getPrivateAppFilesSyncDirectory(getApplicationContext());
 
         File targetFile = new File(privateAppFilesSyncDirectory, createUniqueFileName(fileName));
 
@@ -435,7 +436,8 @@ public class SharingActivity extends AppCompatActivity
     {
         if (fileName == null) return null;
 
-        final File privateAppFilesSyncDirectory = getPrivateAppFilesSyncDirectory();
+        final File privateAppFilesSyncDirectory
+                = SyncMonkeyUtils.getPrivateAppFilesSyncDirectory(getApplicationContext());;
         File potentialNewFile = new File(privateAppFilesSyncDirectory, fileName);
 
         if (potentialNewFile.exists())
@@ -454,17 +456,5 @@ public class SharingActivity extends AppCompatActivity
         }
 
         return fileName;
-    }
-
-    /**
-     * @return The File object representing the app's private storage directory that is synced with the remote server.
-     * Any files in this directory will be uploaded to the remote server.
-     */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private File getPrivateAppFilesSyncDirectory()
-    {
-        final File privateAppFilesSyncDirectory = new File(getApplicationContext().getFilesDir(), SyncMonkeyConstants.PRIVATE_SHARED_SYNC_DIRECTORY);
-        if (!privateAppFilesSyncDirectory.exists()) privateAppFilesSyncDirectory.mkdir();
-        return privateAppFilesSyncDirectory;
     }
 }

@@ -1,5 +1,8 @@
 package com.chesapeaketechnology.syncmonkey;
 
+import android.content.Context;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -61,5 +64,17 @@ public final class SyncMonkeyUtils
             ext = fileName.substring(i).toLowerCase();
         }
         return ext;
+    }
+
+    /**
+     * @return The File object representing the app's private storage directory that is synced with the remote server.
+     * Any files in this directory will be uploaded to the remote server.
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static File getPrivateAppFilesSyncDirectory(Context context)
+    {
+        final File privateAppFilesSyncDirectory = new File(context.getFilesDir(), SyncMonkeyConstants.PRIVATE_SHARED_SYNC_DIRECTORY);
+        if (!privateAppFilesSyncDirectory.exists()) privateAppFilesSyncDirectory.mkdir();
+        return privateAppFilesSyncDirectory;
     }
 }
