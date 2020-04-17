@@ -27,8 +27,6 @@ import androidx.preference.PreferenceManager;
 import com.chesapeaketechnology.syncmonkey.fileupload.FileUploadSyncAdapter;
 import com.chesapeaketechnology.syncmonkey.settings.SettingsActivity;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 
 import net.grandcentrix.tray.AppPreferences;
 
@@ -41,6 +39,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SyncMonkeyMainActivity extends AppCompatActivity
 {
@@ -74,13 +74,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                         Manifest.permission.READ_EXTERNAL_STORAGE},
                 ACCESS_PERMISSION_REQUEST_ID);
 
-        new Thread(new Runnable()
-        {
-            public void run()
-            {
-                updateAndroidAdIdFile();
-            }
-        }).start();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(this::updateAndroidAdIdFile);
     }
 
     @Override
@@ -512,38 +507,39 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
      * Creates a file "android_advertisement_id.txt" in the sync directory with the user's
      * Android Ad ID. Will update the file if it is already present but does not contain the
      * current Advertisement ID.
+     *
+     * @since 0.1.1
      */
     private void updateAndroidAdIdFile()
     {
+        final Context context = getApplicationContext();
         final File privateAppFilesSyncDirectory
-                = SyncMonkeyUtils.getPrivateAppFilesSyncDirectory(getApplicationContext());
+                = SyncMonkeyUtils.getPrivateAppFilesSyncDirectory(context);
 
         try
         {
-            AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(getApplicationContext());
-            File adIdFile = new File(privateAppFilesSyncDirectory +
-                    File.separator + "android_advertisement_id.txt");
+            final AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(context);
+            final File adIdFile = new File(privateAppFilesSyncDirectory, SyncMonkeyConstants.ANDROID_AD_ID_FILE);
 
             if (!adIdFile.exists())
             {
                 adIdFile.createNewFile();
             } else
             {
-                String contents = new String(Files.readAllBytes(adIdFile.toPath())).trim();
+                final String fileContents = new String(Files.readAllBytes(adIdFile.toPath())).trim();
 
                 // File already exists and is equal to current ad ID, our work here is done.
-                if (contents.equals(info.getId())) return;
+                if (fileContents.equals(info.getId())) return;
             }
 
-            FileOutputStream fOut = new FileOutputStream(adIdFile);
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fOut);
-            outputStreamWriter.write(info.getId());
-            outputStreamWriter.close();
-        } catch (IOException
-                | GooglePlayServicesNotAvailableException | GooglePlayServicesRepairableException e)
+            try (final FileOutputStream fileOutputStream = new FileOutputStream(adIdFile);
+                 final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream))
+            {
+                outputStreamWriter.write(info.getId());
+            }
+        } catch (Exception e)
         {
-            Log.e(LOG_TAG, "Error creating Android Advertisement ID file.");
-            e.printStackTrace();
+            Log.e(LOG_TAG, "Error creating Android Advertisement ID file:" + e.toString());
         }
     }
 }

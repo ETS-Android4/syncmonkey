@@ -18,6 +18,7 @@ public class SyncMonkeyConstants
     public static final String PRIVATE_SHARED_SYNC_DIRECTORY = "sharedfiles";
     public static final String DEFAULT_SHARED_TEXT_FILE_NAME = "Text_To_Share.txt";
     public static final String SYNC_MONKEY_PROPERTIES_FILE = "syncmonkey.properties";
+    public static final String ANDROID_AD_ID_FILE = "android_advertisement_id.txt";
 
     /**
      * A custom action that other apps can use to trigger a sync in the Sync Monkey App.  Sending an intent with this
