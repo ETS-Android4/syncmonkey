@@ -26,6 +26,10 @@ Install Android Studio to work on this code.
 
 ## Changelog
 
+##### [0.1.1](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.1) - 2020-04-21
+ * Added support for other apps to kick off a sync.
+ * The Android Advertisement ID is written to a txt file and synced to the Azure Blob store.
+
 ##### [0.1.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.0) - 2020-03-30
  * Added support for sending shared content to Sync Monkey without presenting the share UI.
 
