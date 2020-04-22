@@ -27,6 +27,23 @@
             android:screenOrientation="portrait">
 
             <intent-filter>
+                <action android:name="com.chesapeaketechnology.sycnmonkey.action.SYNC_NOW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="com.chesapeaketechnology.sycnmonkey.action.SEND_FILE_NO_UI" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="@string/wildcard_mime_type" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="com.chesapeaketechnology.sycnmonkey.action.SEND_MULTIPLE_FILE_NO_UI" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="@string/wildcard_mime_type" />
+            </intent-filter>
+
+            <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="@string/wildcard_mime_type" />
