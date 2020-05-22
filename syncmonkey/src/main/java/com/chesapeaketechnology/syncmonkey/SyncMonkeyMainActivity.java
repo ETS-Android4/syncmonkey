@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.RestrictionsManager;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,6 +16,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
+import androidx.core.util.Pair;
 import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.syncmonkey.fileupload.FileUploadSyncAdapter;
@@ -38,9 +41,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 public class SyncMonkeyMainActivity extends AppCompatActivity
 {
@@ -128,6 +134,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         readSyncMonkeyManagedConfiguration(this, appPreferences);
 
         installRcloneConfigFile(this, appPreferences);
+        checkSasUrlExpiration();
 
         managedConfigurationListener = registerManagedConfigurationListener(getApplicationContext(), appPreferences);
 
@@ -466,6 +473,55 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             Log.e(LOG_TAG, message, e);
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void checkSasUrlExpiration()
+    {
+        final Path rcloneConfPath = new File(getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE).toPath();
+        try (Stream<String> lines = Files.lines(rcloneConfPath))
+        {
+            lines.forEach(line -> {
+                if (line.startsWith("sas_url"))
+                {
+                    final String urlString = line.substring(line.indexOf('=') + 1);
+                    final Uri uri = Uri.parse(urlString);
+                    final Date signedStart = SyncMonkeyUtils.parseSasUrlDate(uri.getQueryParameter("st"));
+                    final Date signedExpiry = SyncMonkeyUtils.parseSasUrlDate(uri.getQueryParameter("se"));
+
+                    final Pair<Boolean, String> expirationPair =
+                            SyncMonkeyUtils.getUrlExpirationMessage(new Date(), signedStart, signedExpiry);
+
+                    final Boolean expired = expirationPair.first;
+                    final String message = expirationPair.second;
+
+                    setExpirationMessage(expired, message);
+                }
+            });
+        } catch (Exception e)
+        {
+            // If this happens after the rclone.conf file was JUST
+            // written we can probably assume that the world has ended
+            Log.wtf(LOG_TAG, "Error reading rclone.conf, it should have been written", e.getCause());
+        }
+    }
+
+    /**
+     * Sets the expiration message in the UI.
+     *
+     * @param notExpired is the URL still valid?
+     * @param message    What to display to the user
+     */
+    private void setExpirationMessage(boolean notExpired, String message)
+    {
+        if (notExpired)
+        {
+            findViewById(R.id.warning_icon).setVisibility(View.GONE);
+        } else
+        {
+            findViewById(R.id.warning_icon).setVisibility(View.VISIBLE);
+        }
+
+        ((TextView) findViewById(R.id.expiration_message)).setText(message);
     }
 
     /**

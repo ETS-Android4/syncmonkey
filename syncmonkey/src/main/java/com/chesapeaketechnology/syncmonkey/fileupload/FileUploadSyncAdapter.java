@@ -155,7 +155,9 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
             if (caps == null) continue;
 
             if (Log.isLoggable(LOG_TAG, Log.INFO)) Log.i(LOG_TAG, "Network " + i + ": " + networks[i].toString());
-            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN))
+
+            if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+                && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN))
             {
                 vpnEnabled = true;
             }
