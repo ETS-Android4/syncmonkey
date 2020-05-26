@@ -93,6 +93,8 @@ public final class SyncMonkeyUtils
      *
      * @param dateString Date to parse
      * @return Java Date
+     *
+     * @since 0.1.2
      */
     static Date parseSasUrlDate(String dateString)
     {
@@ -112,6 +114,8 @@ public final class SyncMonkeyUtils
     *
      * @return A pair whose first element indicates if the date is valid,
      * and whose second is the expiration message to display in the UI.
+     *
+     * @since 0.1.2
      */
     static Pair<Boolean, String> getUrlExpirationMessage(Date now, Date starts, Date expires)
     {

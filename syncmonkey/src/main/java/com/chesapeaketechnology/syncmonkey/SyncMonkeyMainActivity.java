@@ -475,6 +475,16 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Reads the SAS URL from the rclone.conf file after it has been written
+     * and displays the message about its expiration date in the UI.
+     * <p>
+     * This requires reading the "sas_url" variable from the config file and extracting
+     * some information from its query params. More info on SAS URLs can be found here:
+     * https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas#specifying-the-signature-validity-interval
+     *
+     * @since 0.1.2
+     */
     private void checkSasUrlExpiration()
     {
         final Path rcloneConfPath = new File(getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE).toPath();
@@ -491,36 +501,32 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                     final Pair<Boolean, String> expirationPair =
                             SyncMonkeyUtils.getUrlExpirationMessage(new Date(), signedStart, signedExpiry);
 
-                    final Boolean expired = expirationPair.first;
+                    final Boolean valid = expirationPair.first;
                     final String message = expirationPair.second;
 
-                    setExpirationMessage(expired, message);
+                    setExpirationMessage(valid, message);
+                    return;
                 }
             });
         } catch (Exception e)
         {
             // If this happens after the rclone.conf file was JUST
             // written we can probably assume that the world has ended
-            Log.wtf(LOG_TAG, "Error reading rclone.conf, it should have been written", e.getCause());
+            Log.wtf(LOG_TAG, "Error reading rclone.conf, it should have been written", e);
         }
     }
 
     /**
      * Sets the expiration message in the UI.
      *
-     * @param notExpired is the URL still valid?
+     * @param valid is the URL still valid?
      * @param message    What to display to the user
+     *
+     * @since 0.1.2
      */
-    private void setExpirationMessage(boolean notExpired, String message)
+    private void setExpirationMessage(boolean valid, String message)
     {
-        if (notExpired)
-        {
-            findViewById(R.id.warning_icon).setVisibility(View.GONE);
-        } else
-        {
-            findViewById(R.id.warning_icon).setVisibility(View.VISIBLE);
-        }
-
+        findViewById(R.id.warning_icon).setVisibility(valid ? View.GONE : View.VISIBLE);
         ((TextView) findViewById(R.id.expiration_message)).setText(message);
     }
 
