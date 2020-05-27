@@ -5,8 +5,6 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.Calendar;
-import java.util.Date;
 import static org.junit.Assert.*;
 
 /**
@@ -73,7 +71,6 @@ public class SyncMonkeyUtilsTest
         assertEquals(12, date1.getHour());
         assertEquals(7, date1.getMinute());
         assertEquals(25, date1.getSecond());
-
 
         assertEquals(Month.OCTOBER, date2.getMonth());
         assertEquals(31, date2.getDayOfMonth());
