@@ -154,10 +154,13 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
             final NetworkCapabilities caps = connectivityManager.getNetworkCapabilities(networks[i]);
             if (caps == null) continue;
 
-            if (Log.isLoggable(LOG_TAG, Log.INFO)) Log.i(LOG_TAG, "Network " + i + ": " + networks[i].toString());
+            if (Log.isLoggable(LOG_TAG, Log.INFO))
+            {
+                Log.i(LOG_TAG, "Network " + i + ": " + networks[i].toString());
+            }
 
             if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-                && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN))
+                    && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN))
             {
                 vpnEnabled = true;
             }
@@ -277,7 +280,10 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
      */
     private void processDirectoryForUpload(String syncDirectoryPath, String deviceId, RemoteItem remote)
     {
-        if (Log.isLoggable(LOG_TAG, Log.INFO)) Log.i(LOG_TAG, "Syncing the directory: " + syncDirectoryPath);
+        if (Log.isLoggable(LOG_TAG, Log.INFO))
+        {
+            Log.i(LOG_TAG, "Syncing the directory: " + syncDirectoryPath);
+        }
 
         Process currentProcess = rclone.uploadFile(remote, "/" + deviceId, syncDirectoryPath);
 

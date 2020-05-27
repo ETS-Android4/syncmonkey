@@ -26,7 +26,10 @@ public class StartSyncMonkeyAtBootReceiver extends BroadcastReceiver
         final AppPreferences appPreferences = new AppPreferences(context);
         final boolean autoSyncPreference = appPreferences.getBoolean(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY, true);
 
-        if (Log.isLoggable(LOG_TAG, Log.INFO)) Log.i(LOG_TAG, "Auto Sync Preference: " + autoSyncPreference);
+        if (Log.isLoggable(LOG_TAG, Log.INFO))
+        {
+            Log.i(LOG_TAG, "Auto Sync Preference: " + autoSyncPreference);
+        }
 
         if (autoSyncPreference)
         {

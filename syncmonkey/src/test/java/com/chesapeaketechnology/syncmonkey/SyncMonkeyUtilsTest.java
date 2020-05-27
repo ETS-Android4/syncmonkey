@@ -2,6 +2,10 @@ package com.chesapeaketechnology.syncmonkey;
 
 import androidx.core.util.Pair;
 import org.junit.Test;
+
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.Calendar;
 import java.util.Date;
 import static org.junit.Assert.*;
 
@@ -13,14 +17,13 @@ public class SyncMonkeyUtilsTest
     @Test
     public void urlExpirationMessageIsCorrect()
     {
-        final int oneDay = 1000 * 60 * 60 * 24;
-        final Date now = new Date();
-        final Date tenDaysAgo = new Date(now.getTime() - (10 * oneDay));
-        final Date yesterday = new Date(now.getTime() - oneDay);
-        final Date earlierToday = new Date(now.getTime() - 1); // see [1]
-        final Date laterToday = new Date(now.getTime() + 1); // see [1]
-        final Date tomorrow = new Date(now.getTime() + oneDay);
-        final Date tenDaysFromNow = new Date(now.getTime() + (10 * oneDay));
+        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime tenDaysAgo = now.minusDays(10);
+        final LocalDateTime yesterday = now.minusDays(1);
+        final LocalDateTime earlierToday = now.minusSeconds(1); // see [1]
+        final LocalDateTime laterToday = now.plusSeconds(1); // see [1]
+        final LocalDateTime tomorrow = now.plusDays(1);
+        final LocalDateTime tenDaysFromNow = now.plusDays(10);
 
         // When URL is valid and expires in x days
         Pair<Boolean, String> result1 = SyncMonkeyUtils.getUrlExpirationMessage(now, tenDaysAgo, laterToday);
@@ -53,7 +56,37 @@ public class SyncMonkeyUtilsTest
         assertEquals(false, result7.first);
         assertEquals("SAS URL is expired", result7.second);
 
-        // [1] These will technically fail if you happen to run them at exactly one millisecond
+        // [1] These will technically fail if you run them at exactly one second
         // before or after midnight. If that is the case, close your IDE and go to sleep.
+    }
+
+    @Test
+    public void sasUrlDatestringsParseCorrectly()
+    {
+        final LocalDateTime date1 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07:25Z");
+        final LocalDateTime date2 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07Z");
+        final LocalDateTime date3 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31");
+
+        assertEquals(Month.OCTOBER, date1.getMonth());
+        assertEquals(31, date1.getDayOfMonth());
+        assertEquals(2020, date1.getYear());
+        assertEquals(12, date1.getHour());
+        assertEquals(7, date1.getMinute());
+        assertEquals(25, date1.getSecond());
+
+
+        assertEquals(Month.OCTOBER, date2.getMonth());
+        assertEquals(31, date2.getDayOfMonth());
+        assertEquals(2020, date2.getYear());
+        assertEquals(12, date2.getHour());
+        assertEquals(7, date2.getMinute());
+        assertEquals(0, date2.getSecond());
+
+        assertEquals(Month.OCTOBER, date3.getMonth());
+        assertEquals(31, date3.getDayOfMonth());
+        assertEquals(2020, date3.getYear());
+        assertEquals(0, date3.getHour());
+        assertEquals(0, date3.getMinute());
+        assertEquals(0, date3.getSecond());
     }
 }

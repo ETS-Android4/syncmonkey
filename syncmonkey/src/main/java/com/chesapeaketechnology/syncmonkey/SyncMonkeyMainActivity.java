@@ -42,11 +42,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 
 public class SyncMonkeyMainActivity extends AppCompatActivity
 {
@@ -488,40 +488,32 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     private void checkSasUrlExpiration()
     {
         final Path rcloneConfPath = new File(getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE).toPath();
-        try (Stream<String> lines = Files.lines(rcloneConfPath))
+        final Optional<Uri> sasUrl = SyncMonkeyUtils.getSasUrlFromConfFile(rcloneConfPath);
+
+        if (sasUrl.isPresent())
         {
-            lines.forEach(line -> {
-                if (line.startsWith("sas_url"))
-                {
-                    final String urlString = line.substring(line.indexOf('=') + 1);
-                    final Uri uri = Uri.parse(urlString);
-                    final Date signedStart = SyncMonkeyUtils.parseSasUrlDate(uri.getQueryParameter("st"));
-                    final Date signedExpiry = SyncMonkeyUtils.parseSasUrlDate(uri.getQueryParameter("se"));
+            final Uri unwrappedUrl = sasUrl.get();
+            final LocalDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
+            final LocalDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
 
-                    final Pair<Boolean, String> expirationPair =
-                            SyncMonkeyUtils.getUrlExpirationMessage(new Date(), signedStart, signedExpiry);
+            final Pair<Boolean, String> expirationPair =
+                    SyncMonkeyUtils.getUrlExpirationMessage(LocalDateTime.now(), signedStart, signedExpiry);
 
-                    final Boolean valid = expirationPair.first;
-                    final String message = expirationPair.second;
+            final Boolean valid = expirationPair.first;
+            final String message = expirationPair.second;
 
-                    setExpirationMessage(valid, message);
-                    return;
-                }
-            });
-        } catch (Exception e)
+            setExpirationMessage(valid, message);
+        } else
         {
-            // If this happens after the rclone.conf file was JUST
-            // written we can probably assume that the world has ended
-            Log.wtf(LOG_TAG, "Error reading rclone.conf, it should have been written", e);
+            Log.i(LOG_TAG, "No sas_url found in rclone.conf, skipping expiration message");
         }
     }
 
     /**
      * Sets the expiration message in the UI.
      *
-     * @param valid is the URL still valid?
-     * @param message    What to display to the user
-     *
+     * @param valid   is the URL still valid?
+     * @param message What to display to the user
      * @since 0.1.2
      */
     private void setExpirationMessage(boolean valid, String message)
