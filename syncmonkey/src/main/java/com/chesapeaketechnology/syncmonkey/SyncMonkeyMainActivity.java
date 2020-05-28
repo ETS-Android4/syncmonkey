@@ -506,6 +506,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         } else
         {
             Log.i(LOG_TAG, "No sas_url found in rclone.conf, skipping expiration message");
+            setExpirationMessage(false, SyncMonkeyConstants.NO_SAS_URL_WARNING);
         }
     }
 
