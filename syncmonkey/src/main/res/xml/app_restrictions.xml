@@ -49,5 +49,4 @@
         android:restrictionType="bool"
         android:title="@string/wifi_only_title" />
 
-
 </restrictions>
