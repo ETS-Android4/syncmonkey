@@ -4,9 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
-import androidx.preference.PreferenceManager;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+
+import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.syncmonkey.Log2File;
 import com.chesapeaketechnology.syncmonkey.R;

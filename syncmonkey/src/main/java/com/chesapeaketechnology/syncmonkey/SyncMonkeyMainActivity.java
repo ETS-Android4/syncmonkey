@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.RestrictionsManager;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,6 +16,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
+import androidx.core.util.Pair;
 import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.syncmonkey.fileupload.FileUploadSyncAdapter;
@@ -38,6 +41,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,6 +134,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         readSyncMonkeyManagedConfiguration(this, appPreferences);
 
         installRcloneConfigFile(this, appPreferences);
+        checkSasUrlExpiration();
 
         managedConfigurationListener = registerManagedConfigurationListener(getApplicationContext(), appPreferences);
 
@@ -466,6 +473,54 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             Log.e(LOG_TAG, message, e);
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Reads the SAS URL from the rclone.conf file after it has been written
+     * and displays the message about its expiration date in the UI.
+     * <p>
+     * This requires reading the "sas_url" variable from the config file and extracting
+     * some information from its query params. More info on SAS URLs can be found here:
+     * https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas#specifying-the-signature-validity-interval
+     *
+     * @since 0.1.2
+     */
+    private void checkSasUrlExpiration()
+    {
+        final Path rcloneConfPath = new File(getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE).toPath();
+        final Optional<Uri> sasUrl = SyncMonkeyUtils.getSasUrlFromConfFile(rcloneConfPath);
+
+        if (sasUrl.isPresent())
+        {
+            final Uri unwrappedUrl = sasUrl.get();
+            final LocalDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
+            final LocalDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
+
+            final Pair<Boolean, String> expirationPair =
+                    SyncMonkeyUtils.getUrlExpirationMessage(LocalDateTime.now(), signedStart, signedExpiry);
+
+            final Boolean valid = expirationPair.first;
+            final String message = expirationPair.second;
+
+            setExpirationMessage(valid, message);
+        } else
+        {
+            Log.i(LOG_TAG, "No sas_url found in rclone.conf, skipping expiration message");
+            setExpirationMessage(false, SyncMonkeyConstants.NO_SAS_URL_WARNING);
+        }
+    }
+
+    /**
+     * Sets the expiration message in the UI.
+     *
+     * @param valid   is the URL still valid?
+     * @param message What to display to the user
+     * @since 0.1.2
+     */
+    private void setExpirationMessage(boolean valid, String message)
+    {
+        findViewById(R.id.warning_icon).setVisibility(valid ? View.GONE : View.VISIBLE);
+        ((TextView) findViewById(R.id.expiration_message)).setText(message);
     }
 
     /**

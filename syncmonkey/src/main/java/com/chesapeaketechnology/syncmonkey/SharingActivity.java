@@ -437,7 +437,7 @@ public class SharingActivity extends AppCompatActivity
         if (fileName == null) return null;
 
         final File privateAppFilesSyncDirectory
-                = SyncMonkeyUtils.getPrivateAppFilesSyncDirectory(getApplicationContext());;
+                = SyncMonkeyUtils.getPrivateAppFilesSyncDirectory(getApplicationContext());
         File potentialNewFile = new File(privateAppFilesSyncDirectory, fileName);
 
         if (potentialNewFile.exists())
