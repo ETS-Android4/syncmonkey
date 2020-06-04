@@ -26,6 +26,9 @@ Install Android Studio to work on this code.
 
 ## Changelog
 
+##### [0.1.2](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.2) - 2020-06-04
+ * The SAS URL expiration count down is now displayed at the bottom of the screen.
+
 ##### [0.1.1](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.1) - 2020-04-21
  * Added support for other apps to kick off a sync.
  * The Android Advertisement ID is written to a txt file and synced to the Azure Blob store.
