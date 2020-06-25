@@ -1,5 +1,8 @@
 # Sync Monkey Android App
 
+[![Build Status](https://travis-ci.com/chesapeaketechnology/syncmonkey.svg?branch=develop)](https://travis-ci.com/github/chesapeaketechnology/syncmonkey)
+[![License](https://img.shields.io/badge/license-Apache%202-green.svg?style=flat)](https://github.com/chesapeaketechnology/syncmonkey/blob/master/LICENSE)
+
 The Sync Monkey Android App enables files on the Android device to be synced with a Microsoft Azure Blob storage.
 
 ![App Screenshot](screenshots/Main_Screenshot_0.0.1.png "The Sync Monkey App Main Screen")
