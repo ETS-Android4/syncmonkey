@@ -29,6 +29,7 @@ import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.syncmonkey.fileupload.FileUploadSyncAdapter;
 import com.chesapeaketechnology.syncmonkey.settings.SettingsActivity;
+import com.chesapeaketechnology.syncmonkey.settings.SettingsFragment;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import net.grandcentrix.tray.AppPreferences;
@@ -353,6 +354,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                     {
                         appPreferences.put(key, (Boolean) property);
                     }
+
+                    SettingsFragment.markPreferenceAsSetByMdm(key);
                 });
             }
 
