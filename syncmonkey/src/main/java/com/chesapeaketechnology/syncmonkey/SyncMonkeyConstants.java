@@ -58,7 +58,8 @@ public class SyncMonkeyConstants
     public static final String AZURE_CONFIG_NAME = "azureconfig";
     public static final String AZURE_REMOTE_TYPE = "azureblob";
 
-    // Properties
+    // User Preference keys and MDM managed configuration keys
+    public static final String PROPERTY_MDM_OVERRIDE_KEY = "mdmOverride";
     public static final String PROPERTY_CONTAINER_NAME_KEY = "containerName";
     public static final String PROPERTY_AZURE_SAS_URL_KEY = "sas_url";
     public static final String PROPERTY_LOCAL_SYNC_DIRECTORIES_KEY = "localSyncDirectories";

@@ -29,7 +29,6 @@ import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.syncmonkey.fileupload.FileUploadSyncAdapter;
 import com.chesapeaketechnology.syncmonkey.settings.SettingsActivity;
-import com.chesapeaketechnology.syncmonkey.settings.SettingsFragment;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import net.grandcentrix.tray.AppPreferences;
@@ -175,7 +174,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
         if (id == R.id.action_settings)
         {
-            startActivity(new Intent(SyncMonkeyMainActivity.this, SettingsActivity.class));
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
@@ -188,7 +187,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     @SuppressLint("ApplySharedPref")
     private void initializeDeviceId()
     {
-        if (appPreferences.contains(SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY))
+        final String deviceIdPreference = appPreferences.getString(SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY, "");
+        if (deviceIdPreference != null && !deviceIdPreference.isEmpty())
         {
             Log.i(LOG_TAG, "The Device ID is already present in the Shared Preferences, skipping setting it to the App's default ID.");
             return;
@@ -345,17 +345,17 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             {
                 final Bundle mdmProperties = restrictionsManager.getApplicationRestrictions();
 
+                final boolean mdmOverride = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY, false);
+
                 mdmProperties.keySet().forEach(key -> {
                     final Object property = mdmProperties.get(key);
                     if (property instanceof String)
                     {
                         appPreferences.put(key, (String) property);
-                    } else if (property instanceof Boolean)
+                    } else if (!mdmOverride && property instanceof Boolean) // Currently, all the boolean MDM preferences are allowed to be overridden by the user
                     {
                         appPreferences.put(key, (Boolean) property);
                     }
-
-                    SettingsFragment.markPreferenceAsSetByMdm(key);
                 });
             }
 
@@ -396,7 +396,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
      */
     public static void installRcloneConfigFile(Context context, AppPreferences appPreferences)
     {
-        if (appPreferences.contains(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY))
+        final String sasUrl = appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY, "");
+        if (sasUrl != null && !sasUrl.isEmpty())
         {
             Log.i(LOG_TAG, "Found the Azure SAS URL Property, creating a new rclone.conf file");
             createNewRcloneConfigFile(context, appPreferences);
@@ -499,13 +500,19 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             final LocalDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
             final LocalDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
 
+            if (signedStart == null || signedExpiry == null)
+            {
+                Log.e(LOG_TAG, "Could not get the start or expiration date for the SAS URL");
+                return;
+            }
+
             final Pair<Boolean, String> expirationPair =
                     SyncMonkeyUtils.getUrlExpirationMessage(LocalDateTime.now(), signedStart, signedExpiry);
 
             final Boolean valid = expirationPair.first;
             final String message = expirationPair.second;
 
-            setExpirationMessage(valid, message);
+            if (valid != null && message != null) setExpirationMessage(valid, message);
         } else
         {
             Log.i(LOG_TAG, "No sas_url found in rclone.conf, skipping expiration message");
@@ -546,6 +553,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                 deviceId = telephonyManager.getImei();
             } else
             {
+                //noinspection deprecation
                 deviceId = telephonyManager.getDeviceId();
             }
         }
@@ -581,6 +589,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
             if (!adIdFile.exists())
             {
+                //noinspection ResultOfMethodCallIgnored
                 adIdFile.createNewFile();
             } else
             {
@@ -597,7 +606,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             }
         } catch (Exception e)
         {
-            Log.e(LOG_TAG, "Error creating Android Advertisement ID file:" + e.toString());
+            Log.e(LOG_TAG, "Error creating Android Advertisement ID file:" + e);
         }
     }
 }

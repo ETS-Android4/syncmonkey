@@ -42,6 +42,10 @@
     <string name="title_activity_settings">Settings</string>
 
     <!-- User Preference Constants -->
+    <string name="mdm_override_title">MDM Override</string>
+    <string name="mdm_override_summary_on">Sync Monkey is controlled via MDM, but now some of the settings MDM can be overridden</string>
+    <string name="mdm_override_summary_off">Sync Monkey is controlled via MDM</string>
+
     <string name="wifi_only_summary_on">Upload files only over Wi-Fi</string>
     <string name="wifi_only_summary_off">Upload files over Wi-Fi and Cellular</string>
 
