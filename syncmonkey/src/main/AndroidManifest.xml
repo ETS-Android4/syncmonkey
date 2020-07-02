@@ -115,6 +115,16 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".SyncNowBroadcastReceiver"
+            android:label="SyncNowBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.chesapeaketechnology.sycnmonkey.action.SYNC_NOW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5986110947196004~1169419042" />
