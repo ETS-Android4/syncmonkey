@@ -29,6 +29,9 @@ Install Android Studio to work on this code.
 
 ## Changelog
 
+##### [0.1.3](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.3) - 2020-07-02
+ * The settings now reflect if the app is configured via MDM.
+
 ##### [0.1.2](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.2) - 2020-06-04
  * The SAS URL expiration count down is now displayed at the bottom of the screen.
 
