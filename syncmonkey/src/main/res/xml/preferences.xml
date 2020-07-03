@@ -59,7 +59,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:defaultValue="Download/NetworkSurveyData:Download/GPSMonkey"
+            app:defaultValue="Download/NetworkSurveyData:Download/GPSMonkey:Pictures/PhotoMonkey"
             app:dialogMessage="@string/sync_directories_summary"
             app:key="localSyncDirectories"
             app:title="@string/sync_directories_title"
