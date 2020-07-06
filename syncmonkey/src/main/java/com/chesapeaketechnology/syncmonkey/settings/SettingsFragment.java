@@ -60,12 +60,16 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
+        Log.d(LOG_TAG, "Shared Preference changed for key=" + key);
+
         // Whenever the share preferences are updated, copy them over to the Tray Preferences
         switch (key)
         {
             case SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY:
                 final boolean mdmOverride = sharedPreferences.getBoolean(key, false);
                 appPreferences.put(key, mdmOverride);
+
+                Log.d(LOG_TAG, "mdmOverride Preference Changed to " + mdmOverride);
 
                 updateOverrideState(mdmOverride);
                 if (!mdmOverride)
@@ -90,7 +94,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
                 break;
 
             default:
-                Log.wtf(LOG_TAG, "A User Preference changed, but there was not a mapping for it to set it in the Tray Preferences");
+                Log.wtf(LOG_TAG, "A User Preference changed, but there was not a mapping for it to set it in the Tray Preferences, key=" + key);
         }
     }
 
@@ -132,53 +136,21 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         final SharedPreferences sharedPreferences = getPreferenceManager().getSharedPreferences();
 
         // Update the UI so that the MDM override is visible, and that some of the settings can't be changed
-        final Preference preference = getPreferenceScreen().findPreference(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY);
-        if (preference != null) preference.setVisible(true);
+        final Preference overridePreference = getPreferenceScreen().findPreference(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY);
+        if (overridePreference != null) overridePreference.setVisible(true);
 
         final boolean mdmOverride = sharedPreferences.getBoolean(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY, false);
 
-        final PreferenceScreen prefScreen = getPreferenceScreen();
-        int prefCount = prefScreen.getPreferenceCount();
+        final PreferenceScreen preferenceScreen = getPreferenceScreen();
 
-        for (int i = 0; i < prefCount; i++)
-        {
-            final Preference pref = prefScreen.getPreference(i);
-            final String key = pref.getKey();
+        updateSwitchPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY, mdmOverride);
+        updateSwitchPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_VPN_ONLY_KEY, mdmOverride);
+        updateSwitchPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_WIFI_ONLY_KEY, mdmOverride);
 
-            // We don't need to enable/disable or update the MDM override option, so skip past it.
-            if (key.equals(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY)) continue;
-
-            if (!mdmOverride || !OVERRIDABLE_PREFERENCES.contains(key))
-            {
-                pref.setEnabled(false);
-                try
-                {
-                    switch (key)
-                    {
-                        case SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY:
-                        case SyncMonkeyConstants.PROPERTY_VPN_ONLY_KEY:
-                        case SyncMonkeyConstants.PROPERTY_WIFI_ONLY_KEY:
-                            //noinspection ConstantConditions
-                            ((SwitchPreferenceCompat) prefScreen.findPreference(key)).setChecked(appPreferences.getBoolean(pref.getKey()));
-                            break;
-
-                        case SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY:
-                        case SyncMonkeyConstants.PROPERTY_CONTAINER_NAME_KEY:
-                        case SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY:
-                        case SyncMonkeyConstants.PROPERTY_LOCAL_SYNC_DIRECTORIES_KEY:
-                            //noinspection ConstantConditions
-                            ((EditTextPreference) prefScreen.findPreference(key)).setText(appPreferences.getString(pref.getKey()));
-                            break;
-
-                        default:
-                            Log.wtf(LOG_TAG, "A User Preference changed, but there was not a mapping for it to set it in the Tray Preferences");
-                    }
-                } catch (ItemNotFoundException | NullPointerException e)
-                {
-                    Log.wtf(LOG_TAG, "Could not find the Tray preference for " + key);
-                }
-            }
-        }
+        updateEditTextPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY, mdmOverride);
+        updateEditTextPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_CONTAINER_NAME_KEY, mdmOverride);
+        updateEditTextPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY, mdmOverride);
+        updateEditTextPreferenceForMdm(preferenceScreen, SyncMonkeyConstants.PROPERTY_LOCAL_SYNC_DIRECTORIES_KEY, mdmOverride);
     }
 
     /**
@@ -193,5 +165,67 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         final PreferenceScreen preferenceScreen = getPreferenceScreen();
         //noinspection ConstantConditions
         OVERRIDABLE_PREFERENCES.forEach(key -> preferenceScreen.findPreference(key).setEnabled(mdmOverride));
+    }
+
+    /**
+     * Updates the UI preference to reflect MDM control by disabling the UI preference component and pulling the
+     * specified preference value from the app preferences.
+     * <p>
+     * However, this only occurs if the preference is not being overridden via the mdmOverride user option.
+     *
+     * @param preferenceScreen The preference screen that contains the preference to set.
+     * @param preferenceKey    The key that corresponds to the preference of interest.
+     * @param mdmOverride      If true, then the preference UI component will only be disabled and updated if the
+     *                         preference is not in the overridable list.
+     * @since 0.1.4
+     */
+    private void updateSwitchPreferenceForMdm(PreferenceScreen preferenceScreen, String preferenceKey, boolean mdmOverride)
+    {
+        if (mdmOverride && OVERRIDABLE_PREFERENCES.contains(preferenceKey))
+        {
+            Log.d(LOG_TAG, "Skipping updating a preference because of the MDM override, key=" + preferenceKey);
+            return;
+        }
+
+        try
+        {
+            final SwitchPreferenceCompat preference = preferenceScreen.findPreference(preferenceKey);
+            //noinspection ConstantConditions
+            preference.setEnabled(false);
+            preference.setChecked(appPreferences.getBoolean(preferenceKey));
+        } catch (ItemNotFoundException | NullPointerException e)
+        {
+            Log.wtf(LOG_TAG, "Could not find the boolean Tray preference or update the UI component for " + preferenceKey, e);
+        }
+    }
+
+    /**
+     * Updates the UI preference to reflect MDM control by disabling the UI preference component and pulling the
+     * specified preference value from the app preferences.
+     * <p>
+     * However, this only occurs if the preference is not being overridden via the mdmOverride user option.
+     *
+     * @param preferenceScreen The preference screen that contains the preference to set.
+     * @param preferenceKey    The key that corresponds to the preference of interest.
+     * @param mdmOverride      If true, then the preference UI component will only be disabled and updated if the
+     *                         preference is not in the overridable list.
+     * @since 0.1.4
+     */
+    private void updateEditTextPreferenceForMdm(PreferenceScreen preferenceScreen, String preferenceKey, boolean mdmOverride)
+    {
+        if (mdmOverride && OVERRIDABLE_PREFERENCES.contains(preferenceKey))
+        {
+            Log.d(LOG_TAG, "Skipping updating a preference because of the MDM override, key=" + preferenceKey);
+            return;
+        }
+
+        try
+        {
+            //noinspection ConstantConditions
+            ((EditTextPreference) preferenceScreen.findPreference(preferenceKey)).setText(appPreferences.getString(preferenceKey));
+        } catch (ItemNotFoundException | NullPointerException e)
+        {
+            Log.wtf(LOG_TAG, "Could not find the String Tray preference or update the UI component for " + preferenceKey, e);
+        }
     }
 }

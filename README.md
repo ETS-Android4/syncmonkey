@@ -20,14 +20,14 @@ To build and install the project follow the steps below:
 
 Install Android Studio to work on this code.
 
-## Built With
-
-
 ## Google Play Listing
 
 [The Google Play Listing for this app](https://play.google.com/store/apps/details?id=)
 
 ## Changelog
+
+##### [0.1.4](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.4) - 2020-07-05
+ * Fixed a bug where a few of the MDM configured values were not being shown in the Settings UI.
 
 ##### [0.1.3](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.3) - 2020-07-02
  * The settings now reflect if the app is configured via MDM.

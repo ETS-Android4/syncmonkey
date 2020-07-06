@@ -347,6 +347,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
                 final boolean mdmOverride = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY, false);
 
+                Log.d(LOG_TAG, "When reading the Sync Monkey managed configuration the mdmOverride=" + mdmOverride);
+
                 mdmProperties.keySet().forEach(key -> {
                     final Object property = mdmProperties.get(key);
                     if (property instanceof String)
@@ -358,11 +360,6 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                     }
                 });
             }
-
-            /*if (Log.isLoggable(LOG_TAG, Log.INFO))
-            {
-                Log.i(LOG_TAG, "The Properties after reading in the managed config: " + preferences.getAll().toString());
-            }*/
         } catch (Exception e)
         {
             Log.e(LOG_TAG, "Can't read the Sync Monkey managed configuration", e);
