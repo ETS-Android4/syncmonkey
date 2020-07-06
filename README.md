@@ -22,7 +22,7 @@ Install Android Studio to work on this code.
 
 ## Google Play Listing
 
-[The Google Play Listing for this app](https://play.google.com/store/apps/details?id=)
+[The Google Play Listing for this app](https://play.google.com/store/apps/details?id=com.chesapeaketechnology.syncmonkey)
 
 ## Changelog
 
