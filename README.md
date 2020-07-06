@@ -27,7 +27,7 @@ Install Android Studio to work on this code.
 ## Changelog
 
 ##### [0.1.5](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.6) - 2020-07-06
- * Display the app's version number
+ * Display the app's version number at the bottom of the main screen.
  * Disabled the Server Configuration settings when under MDM control.
 
 ##### [0.1.4](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.4) - 2020-07-05
