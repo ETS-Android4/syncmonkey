@@ -75,7 +75,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
                 if (!mdmOverride)
                 {
                     // Since we are removing the override, we need to read in the MDM provided preferences to the appPreferences
-                    SyncMonkeyMainActivity.readSyncMonkeyManagedConfiguration(requireContext(), appPreferences);
+                    final Context context = getContext();
+                    if (context != null)
+                    {
+                        SyncMonkeyMainActivity.readSyncMonkeyManagedConfiguration(context, appPreferences);
+                    }
                     updateUiForMdmIfNecessary();
                 }
                 break;
@@ -221,8 +225,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
         try
         {
+            final EditTextPreference preference = preferenceScreen.findPreference(preferenceKey);
             //noinspection ConstantConditions
-            ((EditTextPreference) preferenceScreen.findPreference(preferenceKey)).setText(appPreferences.getString(preferenceKey));
+            preference.setEnabled(false);
+            preference.setText(appPreferences.getString(preferenceKey));
         } catch (ItemNotFoundException | NullPointerException e)
         {
             Log.wtf(LOG_TAG, "Could not find the String Tray preference or update the UI component for " + preferenceKey, e);

@@ -26,6 +26,10 @@ Install Android Studio to work on this code.
 
 ## Changelog
 
+##### [0.1.5](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.6) - 2020-07-06
+ * Display the app's version number
+ * Disabled the Server Configuration settings when under MDM control.
+
 ##### [0.1.4](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.4) - 2020-07-05
  * Fixed a bug where a few of the MDM configured values were not being shown in the Settings UI.
 

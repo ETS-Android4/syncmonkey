@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.RestrictionsManager;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -70,6 +71,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
         findViewById(R.id.button).setOnClickListener(listener -> runSyncAdapter());
+
+        setAppVersionNumber();
 
         // Install the defaults specified in the XML preferences file, this is only done the first time the app is opened
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -528,6 +531,24 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     {
         findViewById(R.id.warning_icon).setVisibility(valid ? View.GONE : View.VISIBLE);
         ((TextView) findViewById(R.id.expiration_message)).setText(message);
+    }
+
+    /**
+     * Get the app version number and set it at the bottom of the view.
+     *
+     * @since 0.1.2
+     */
+    private void setAppVersionNumber()
+    {
+        try
+        {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            final TextView appVersionView = findViewById(R.id.app_version_name);
+            appVersionView.setText(getString(R.string.app_version, info.versionName));
+        } catch (Exception e)
+        {
+            Log.wtf(LOG_TAG, "Could not set the app version number", e);
+        }
     }
 
     /**
