@@ -228,7 +228,15 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
             final EditTextPreference preference = preferenceScreen.findPreference(preferenceKey);
             //noinspection ConstantConditions
             preference.setEnabled(false);
-            preference.setText(appPreferences.getString(preferenceKey));
+
+            // We don't want to set the value in the settings UI if it is the SAS URL since that information is sensitive
+            if (SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY.equals(preferenceKey))
+            {
+                preference.setSummaryProvider(p -> "Set via MDM");
+            } else
+            {
+                preference.setText(appPreferences.getString(preferenceKey));
+            }
         } catch (ItemNotFoundException | NullPointerException e)
         {
             Log.wtf(LOG_TAG, "Could not find the String Tray preference or update the UI component for " + preferenceKey, e);
