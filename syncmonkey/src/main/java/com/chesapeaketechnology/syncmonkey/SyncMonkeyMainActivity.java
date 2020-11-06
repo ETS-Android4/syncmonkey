@@ -43,7 +43,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -497,8 +497,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         if (sasUrl.isPresent())
         {
             final Uri unwrappedUrl = sasUrl.get();
-            final LocalDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
-            final LocalDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
+            final ZonedDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
+            final ZonedDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
 
             if (signedStart == null || signedExpiry == null)
             {
@@ -507,7 +507,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             }
 
             final Pair<Boolean, String> expirationPair =
-                    SyncMonkeyUtils.getUrlExpirationMessage(LocalDateTime.now(), signedStart, signedExpiry);
+                    SyncMonkeyUtils.getUrlExpirationMessage(ZonedDateTime.now(), signedStart, signedExpiry);
 
             final Boolean valid = expirationPair.first;
             final String message = expirationPair.second;

@@ -13,7 +13,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -136,14 +137,14 @@ public final class SyncMonkeyUtils
      * @return Java Date. Will return null if passed a date of unrecognized format.
      * @since 0.1.2
      */
-    static LocalDateTime parseSasUrlDate(String dateString)
+    static ZonedDateTime parseSasUrlDate(String dateString)
     {
         if (dateString == null) return null;
 
         if (dateString.length() == 10)
         {
             LocalDate ld = LocalDate.parse(dateString, DateTimeFormatter.ISO_DATE);
-            return ld.atStartOfDay();
+            return ld.atStartOfDay().atZone(ZoneId.of("UTC"));
         }
 
         boolean timeWithoutSeconds = Pattern.compile("T[0-9]{2}:[0-9]{2}([+\\-Z])").matcher(dateString).find();
@@ -151,7 +152,7 @@ public final class SyncMonkeyUtils
 
         if (timeWithSeconds || timeWithoutSeconds)
         {
-            return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME);
+            return ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME);
         }
 
         Log.wtf(LOG_TAG, "Cannot parse date in unrecognized format");
@@ -170,7 +171,7 @@ public final class SyncMonkeyUtils
      * and whose second is the expiration message to display in the UI.
      * @since 0.1.2
      */
-    static Pair<Boolean, String> getUrlExpirationMessage(LocalDateTime now, LocalDateTime starts, LocalDateTime expires)
+    static Pair<Boolean, String> getUrlExpirationMessage(ZonedDateTime now, ZonedDateTime starts, ZonedDateTime expires)
     {
         if (now.isBefore(starts))
         {
