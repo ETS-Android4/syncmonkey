@@ -285,7 +285,11 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
             Log.i(LOG_TAG, "Syncing the directory: " + syncDirectoryPath);
         }
 
-        Process currentProcess = rclone.uploadFile(remote, "/" + deviceId, syncDirectoryPath);
+        // The destination path ends up being /deviceId/directParentDir (for example: "Eliza-Android-S7/NetworkSurveyData").
+        final String[] parentDirectories = syncDirectoryPath.split("/");
+        final String destinationPath = "/" + deviceId + "/" + parentDirectories[parentDirectories.length - 1];
+
+        Process currentProcess = rclone.uploadFile(remote, destinationPath, syncDirectoryPath);
 
         if (currentProcess != null)
         {
