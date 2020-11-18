@@ -13,13 +13,14 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static java.time.temporal.ChronoUnit.*;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 /**
  * A collection of utilities for use throughout the Sync Monkey app.
@@ -98,9 +99,7 @@ public final class SyncMonkeyUtils
      * Extracts the Azure SAS URL from an rclone.conf file.
      *
      * @param rcloneConfPath Path of rclone.conf file
-     *
      * @return SAS URI object
-     *
      * @since 0.1.2
      */
     static Optional<Uri> getSasUrlFromConfFile(Path rcloneConfPath)
@@ -135,17 +134,17 @@ public final class SyncMonkeyUtils
      * https://en.wikipedia.org/wiki/ISO_8601
      *
      * @param dateString Date to parse
-     *
      * @return Java Date. Will return null if passed a date of unrecognized format.
-     *
      * @since 0.1.2
      */
-    static LocalDateTime parseSasUrlDate(String dateString)
+    static ZonedDateTime parseSasUrlDate(String dateString)
     {
+        if (dateString == null) return null;
+
         if (dateString.length() == 10)
         {
             LocalDate ld = LocalDate.parse(dateString, DateTimeFormatter.ISO_DATE);
-            return ld.atStartOfDay();
+            return ld.atStartOfDay().atZone(ZoneId.of("UTC"));
         }
 
         boolean timeWithoutSeconds = Pattern.compile("T[0-9]{2}:[0-9]{2}([+\\-Z])").matcher(dateString).find();
@@ -153,7 +152,7 @@ public final class SyncMonkeyUtils
 
         if (timeWithSeconds || timeWithoutSeconds)
         {
-            return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME);
+            return ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME);
         }
 
         Log.wtf(LOG_TAG, "Cannot parse date in unrecognized format");
@@ -168,13 +167,11 @@ public final class SyncMonkeyUtils
      * @param now     Current date
      * @param starts  Start date of URL validity
      * @param expires End date of URL validity
-     *
      * @return A pair whose first element indicates if the date is valid,
      * and whose second is the expiration message to display in the UI.
-     *
      * @since 0.1.2
      */
-    static Pair<Boolean, String> getUrlExpirationMessage(LocalDateTime now, LocalDateTime starts, LocalDateTime expires)
+    static Pair<Boolean, String> getUrlExpirationMessage(ZonedDateTime now, ZonedDateTime starts, ZonedDateTime expires)
     {
         if (now.isBefore(starts))
         {
@@ -194,7 +191,7 @@ public final class SyncMonkeyUtils
                 message += daysBetween + " days from now";
             }
 
-            return new Pair<Boolean, String>(false, message);
+            return new Pair<>(false, message);
         } else if (now.isAfter(starts) && now.isBefore(expires))
         {
             String message = "SAS URL expires ";
@@ -211,9 +208,9 @@ public final class SyncMonkeyUtils
                 message += "in " + daysBetween + " days";
             }
 
-            return new Pair<Boolean, String>(true, message);
+            return new Pair<>(true, message);
         }
 
-        return new Pair<Boolean, String>(false, "SAS URL is expired");
+        return new Pair<>(false, "SAS URL is expired");
     }
 }

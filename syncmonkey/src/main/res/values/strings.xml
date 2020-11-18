@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Sync Monkey</string>
 
+    <string name="app_version">v%1$s</string>
+
     <string name="settings">Settings</string>
 
     <string name="title_activity_sharing">SharingActivity</string>
@@ -26,7 +28,7 @@
     <string name="sas_url_description">SAS URL for connecting to the Azure Blob Storage</string>
 
     <string name="local_sync_directories_title">Local Sync Directories</string>
-    <string name="local_sync_directories_description">A colon separated list of relative directories to upload (e.g. Download/NetworkSurveyData:Download/GPSMonkey )</string>
+    <string name="local_sync_directories_description">A colon separated list of relative directories to upload (e.g. Download/NetworkSurveyData:Download/SomeDirectory )</string>
 
     <string name="device_id_title">Device ID</string>
     <string name="device_id_description">The device ID, which will be used to create a folder to group all uploaded files together</string>
@@ -42,6 +44,10 @@
     <string name="title_activity_settings">Settings</string>
 
     <!-- User Preference Constants -->
+    <string name="mdm_override_title">MDM Override</string>
+    <string name="mdm_override_summary_on">Sync Monkey is controlled via MDM, but now some of the MDM settings can be overridden</string>
+    <string name="mdm_override_summary_off">Sync Monkey is controlled via MDM</string>
+
     <string name="wifi_only_summary_on">Upload files only over Wi-Fi</string>
     <string name="wifi_only_summary_off">Upload files over Wi-Fi and Cellular</string>
 

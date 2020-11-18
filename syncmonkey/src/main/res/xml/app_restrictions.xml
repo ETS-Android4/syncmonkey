@@ -8,14 +8,13 @@
         android:title="@string/container_name_title" />
 
     <restriction
-        android:defaultValue=""
         android:description="@string/sas_url_description"
         android:key="sas_url"
         android:restrictionType="string"
         android:title="@string/sas_url_title" />
 
     <restriction
-        android:defaultValue="Download/NetworkSurveyData:Download/GPSMonkey"
+        android:defaultValue="Download/NetworkSurveyData:Download/NetworkSurveyPlusData:Pictures/PhotoMonkey"
         android:description="@string/local_sync_directories_description"
         android:key="localSyncDirectories"
         android:restrictionType="string"

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.RestrictionsManager;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -42,7 +43,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -70,6 +71,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
         findViewById(R.id.button).setOnClickListener(listener -> runSyncAdapter());
+
+        setAppVersionNumber();
 
         // Install the defaults specified in the XML preferences file, this is only done the first time the app is opened
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -174,7 +177,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
         if (id == R.id.action_settings)
         {
-            startActivity(new Intent(SyncMonkeyMainActivity.this, SettingsActivity.class));
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
@@ -187,7 +190,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     @SuppressLint("ApplySharedPref")
     private void initializeDeviceId()
     {
-        if (appPreferences.contains(SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY))
+        final String deviceIdPreference = appPreferences.getString(SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY, "");
+        if (deviceIdPreference != null && !deviceIdPreference.isEmpty())
         {
             Log.i(LOG_TAG, "The Device ID is already present in the Shared Preferences, skipping setting it to the App's default ID.");
             return;
@@ -344,22 +348,21 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             {
                 final Bundle mdmProperties = restrictionsManager.getApplicationRestrictions();
 
+                final boolean mdmOverride = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SyncMonkeyConstants.PROPERTY_MDM_OVERRIDE_KEY, false);
+
+                Log.d(LOG_TAG, "When reading the Sync Monkey managed configuration the mdmOverride=" + mdmOverride);
+
                 mdmProperties.keySet().forEach(key -> {
                     final Object property = mdmProperties.get(key);
                     if (property instanceof String)
                     {
                         appPreferences.put(key, (String) property);
-                    } else if (property instanceof Boolean)
+                    } else if (!mdmOverride && property instanceof Boolean) // Currently, all the boolean MDM preferences are allowed to be overridden by the user
                     {
                         appPreferences.put(key, (Boolean) property);
                     }
                 });
             }
-
-            /*if (Log.isLoggable(LOG_TAG, Log.INFO))
-            {
-                Log.i(LOG_TAG, "The Properties after reading in the managed config: " + preferences.getAll().toString());
-            }*/
         } catch (Exception e)
         {
             Log.e(LOG_TAG, "Can't read the Sync Monkey managed configuration", e);
@@ -393,7 +396,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
      */
     public static void installRcloneConfigFile(Context context, AppPreferences appPreferences)
     {
-        if (appPreferences.contains(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY))
+        final String sasUrl = appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY, "");
+        if (sasUrl != null && !sasUrl.isEmpty())
         {
             Log.i(LOG_TAG, "Found the Azure SAS URL Property, creating a new rclone.conf file");
             createNewRcloneConfigFile(context, appPreferences);
@@ -493,16 +497,22 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         if (sasUrl.isPresent())
         {
             final Uri unwrappedUrl = sasUrl.get();
-            final LocalDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
-            final LocalDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
+            final ZonedDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
+            final ZonedDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
+
+            if (signedStart == null || signedExpiry == null)
+            {
+                Log.e(LOG_TAG, "Could not get the start or expiration date for the SAS URL");
+                return;
+            }
 
             final Pair<Boolean, String> expirationPair =
-                    SyncMonkeyUtils.getUrlExpirationMessage(LocalDateTime.now(), signedStart, signedExpiry);
+                    SyncMonkeyUtils.getUrlExpirationMessage(ZonedDateTime.now(), signedStart, signedExpiry);
 
             final Boolean valid = expirationPair.first;
             final String message = expirationPair.second;
 
-            setExpirationMessage(valid, message);
+            if (valid != null && message != null) setExpirationMessage(valid, message);
         } else
         {
             Log.i(LOG_TAG, "No sas_url found in rclone.conf, skipping expiration message");
@@ -521,6 +531,24 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     {
         findViewById(R.id.warning_icon).setVisibility(valid ? View.GONE : View.VISIBLE);
         ((TextView) findViewById(R.id.expiration_message)).setText(message);
+    }
+
+    /**
+     * Get the app version number and set it at the bottom of the view.
+     *
+     * @since 0.1.2
+     */
+    private void setAppVersionNumber()
+    {
+        try
+        {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            final TextView appVersionView = findViewById(R.id.app_version_name);
+            appVersionView.setText(getString(R.string.app_version, info.versionName));
+        } catch (Exception e)
+        {
+            Log.wtf(LOG_TAG, "Could not set the app version number", e);
+        }
     }
 
     /**
@@ -543,6 +571,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                 deviceId = telephonyManager.getImei();
             } else
             {
+                //noinspection deprecation
                 deviceId = telephonyManager.getDeviceId();
             }
         }
@@ -578,6 +607,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
 
             if (!adIdFile.exists())
             {
+                //noinspection ResultOfMethodCallIgnored
                 adIdFile.createNewFile();
             } else
             {
@@ -594,7 +624,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             }
         } catch (Exception e)
         {
-            Log.e(LOG_TAG, "Error creating Android Advertisement ID file:" + e.toString());
+            Log.e(LOG_TAG, "Error creating Android Advertisement ID file:" + e);
         }
     }
 }

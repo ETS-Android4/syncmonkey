@@ -1,5 +1,8 @@
 # Sync Monkey Android App
 
+[![Build Status](https://travis-ci.com/chesapeaketechnology/syncmonkey.svg?branch=develop)](https://travis-ci.com/github/chesapeaketechnology/syncmonkey)
+[![License](https://img.shields.io/badge/license-Apache%202-green.svg?style=flat)](https://github.com/chesapeaketechnology/syncmonkey/blob/master/LICENSE)
+
 The Sync Monkey Android App enables files on the Android device to be synced with a Microsoft Azure Blob storage.
 
 ![App Screenshot](screenshots/Main_Screenshot_0.0.1.png "The Sync Monkey App Main Screen")
@@ -17,14 +20,27 @@ To build and install the project follow the steps below:
 
 Install Android Studio to work on this code.
 
-## Built With
-
-
 ## Google Play Listing
 
-[The Google Play Listing for this app](https://play.google.com/store/apps/details?id=)
+[The Google Play Listing for this app](https://play.google.com/store/apps/details?id=com.chesapeaketechnology.syncmonkey)
 
 ## Changelog
+
+##### [0.2.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.2.0) - 2020-11-17
+ * The origin directory is now retained when uploading to the remote Azure blob storage account.
+
+##### [0.1.6](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.6) - 2020-07-08
+ * Prevent the MDM provided SAS URL from being displayed in the settings UI.
+
+##### [0.1.5](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.5) - 2020-07-06
+ * Display the app's version number at the bottom of the main screen.
+ * Disabled the Server Configuration settings when under MDM control.
+
+##### [0.1.4](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.4) - 2020-07-05
+ * Fixed a bug where a few of the MDM configured values were not being shown in the Settings UI.
+
+##### [0.1.3](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.3) - 2020-07-02
+ * The settings now reflect if the app is configured via MDM.
 
 ##### [0.1.2](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.2) - 2020-06-04
  * The SAS URL expiration count down is now displayed at the bottom of the screen.

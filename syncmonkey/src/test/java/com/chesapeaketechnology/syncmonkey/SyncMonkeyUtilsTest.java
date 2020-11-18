@@ -1,11 +1,14 @@
 package com.chesapeaketechnology.syncmonkey;
 
 import androidx.core.util.Pair;
+
 import org.junit.Test;
 
-import java.time.LocalDateTime;
 import java.time.Month;
-import static org.junit.Assert.*;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for main activity
@@ -15,13 +18,13 @@ public class SyncMonkeyUtilsTest
     @Test
     public void urlExpirationMessageIsCorrect()
     {
-        final LocalDateTime now = LocalDateTime.now();
-        final LocalDateTime tenDaysAgo = now.minusDays(10);
-        final LocalDateTime yesterday = now.minusDays(1);
-        final LocalDateTime earlierToday = now.minusSeconds(1); // see [1]
-        final LocalDateTime laterToday = now.plusSeconds(1); // see [1]
-        final LocalDateTime tomorrow = now.plusDays(1);
-        final LocalDateTime tenDaysFromNow = now.plusDays(10);
+        final ZonedDateTime now = ZonedDateTime.now();
+        final ZonedDateTime tenDaysAgo = now.minusDays(10);
+        final ZonedDateTime yesterday = now.minusDays(1);
+        final ZonedDateTime earlierToday = now.minusSeconds(1); // see [1]
+        final ZonedDateTime laterToday = now.plusSeconds(1); // see [1]
+        final ZonedDateTime tomorrow = now.plusDays(1);
+        final ZonedDateTime tenDaysFromNow = now.plusDays(10);
 
         // When URL is valid and expires in x days
         Pair<Boolean, String> result1 = SyncMonkeyUtils.getUrlExpirationMessage(now, tenDaysAgo, laterToday);
@@ -59,11 +62,24 @@ public class SyncMonkeyUtilsTest
     }
 
     @Test
+    public void dateTimeZoneTest()
+    {
+        final ZonedDateTime sasUrlStartDateTime = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07:25Z");
+        final ZonedDateTime sasUrlEndDateTime = sasUrlStartDateTime.plusMonths(1);
+
+        final ZonedDateTime localDateTime = ZonedDateTime.parse("2020-10-31T10:15:30-04:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+        Pair<Boolean, String> result3 = SyncMonkeyUtils.getUrlExpirationMessage(localDateTime, sasUrlStartDateTime, sasUrlEndDateTime);
+        assertEquals(true, result3.first);
+        assertEquals("SAS URL expires in 29 days", result3.second);
+    }
+
+    @Test
     public void sasUrlDatestringsParseCorrectly()
     {
-        final LocalDateTime date1 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07:25Z");
-        final LocalDateTime date2 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07Z");
-        final LocalDateTime date3 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31");
+        final ZonedDateTime date1 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07:25Z");
+        final ZonedDateTime date2 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31T12:07Z");
+        final ZonedDateTime date3 = SyncMonkeyUtils.parseSasUrlDate("2020-10-31");
 
         assertEquals(Month.OCTOBER, date1.getMonth());
         assertEquals(31, date1.getDayOfMonth());

@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <SwitchPreferenceCompat
+        app:defaultValue="false"
+        app:icon="@drawable/ic_mdm_control"
+        app:isPreferenceVisible="false"
+        app:key="mdmOverride"
+        app:summaryOff="@string/mdm_override_summary_off"
+        app:summaryOn="@string/mdm_override_summary_on"
+        app:title="@string/mdm_override_title" />
+
+    <SwitchPreferenceCompat
         app:defaultValue="true"
         app:icon="@drawable/ic_wifi"
         app:key="wifiOnly"
@@ -50,7 +59,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:defaultValue="Download/NetworkSurveyData:Download/GPSMonkey"
+            app:defaultValue="Download/NetworkSurveyData:Pictures/PhotoMonkey"
             app:dialogMessage="@string/sync_directories_summary"
             app:key="localSyncDirectories"
             app:title="@string/sync_directories_title"
