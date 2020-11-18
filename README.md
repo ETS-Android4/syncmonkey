@@ -26,7 +26,7 @@ Install Android Studio to work on this code.
 
 ## Changelog
 
-##### [0.2.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.2.0) - 2020-11-13
+##### [0.2.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.2.0) - 2020-11-17
  * The origin directory is now retained when uploading to the remote Azure blob storage account.
 
 ##### [0.1.6](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.1.6) - 2020-07-08
