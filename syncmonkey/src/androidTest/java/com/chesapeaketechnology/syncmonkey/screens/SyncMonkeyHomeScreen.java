@@ -2,7 +2,7 @@ package com.chesapeaketechnology.syncmonkey.screens;
 
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.ViewInteraction;
-import com.chesapeaketechnology.syncmonkey.EspressoBase;
+
 import com.chesapeaketechnology.syncmonkey.R;
 import com.chesapeaketechnology.syncmonkey.helpers.ChildAtPosition;
 import org.hamcrest.core.IsInstanceOf;
@@ -13,8 +13,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.*;
 import static com.schibsted.spain.barista.interaction.BaristaClickInteractions.*;
 import static org.hamcrest.Matchers.*;
 
-public class SyncMonkeyHomeScreen extends EspressoBase
-{
+public class SyncMonkeyHomeScreen {
 
     public static final Integer settingsGear = R.id.action_settings;
     public static final Integer homePageDescription = R.id.sync_button_description;
