@@ -13,6 +13,9 @@ import static com.google.common.truth.Truth.*;
 public class HomePageTests extends TestBase
 {
 
+    /*
+        Test Case: MONKEY-T47
+     */
     @Test
     public void assertHomePageContent()
     {
@@ -26,6 +29,9 @@ public class HomePageTests extends TestBase
                 .isTrue();
     }
 
+    /*
+        Test Case: MONKEY-T46
+     */
     @Test
     public void homePageContentIsUpdatedWhenAutoSyncDisabled()
     {

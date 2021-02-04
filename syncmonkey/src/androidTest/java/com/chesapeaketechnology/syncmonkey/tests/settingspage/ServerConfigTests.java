@@ -17,6 +17,9 @@ import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.
 public class ServerConfigTests extends TestBase
 {
 
+    /*
+        Test Case: MONKEY-T54
+    */
     @Test
     public void updateDeviceIdField() throws ItemNotFoundException
     {
@@ -29,11 +32,14 @@ public class ServerConfigTests extends TestBase
         SyncMonkeyHomeScreen.clickSettingsGear();
         SyncMonkeySettingsScreen.expandServerConfig();
         assertContains(deviceId);
-        assertWithMessage("Application Preferences for DeviceId are set to " + deviceId)
+        assertWithMessage("T-48: Application Preferences for DeviceId are set to " + deviceId)
                 .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_DEVICE_ID_KEY))
                 .isEqualTo(deviceId);
     }
 
+    /*
+        Test Case: MONKEY-T55
+    */
     @Test
     public void updateContainerNameField() throws ItemNotFoundException
     {
@@ -50,6 +56,9 @@ public class ServerConfigTests extends TestBase
                 .isEqualTo(containerName);
     }
 
+    /*
+        Test Case: MONKEY-T56
+    */
     @Test
     public void updateSasUrlField() throws ItemNotFoundException
     {
@@ -66,6 +75,9 @@ public class ServerConfigTests extends TestBase
                 .isEqualTo(url);
     }
 
+    /*
+        Test Case: MONKEY-T57
+    */
     @Test
     public void updateSyncDirectoriesField() throws ItemNotFoundException
     {

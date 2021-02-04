@@ -15,6 +15,9 @@ import static com.google.common.truth.Truth.*;
 public class ToggleButtonsTests extends TestBase
 {
 
+    /*
+        Test Case: MONKEY-T48
+     */
     @Test
     public void toggleWifiOnlyUploadButtonUpdatesSettings() throws ItemNotFoundException
     {
@@ -34,6 +37,9 @@ public class ToggleButtonsTests extends TestBase
                 .isEqualTo("false");
     }
 
+    /*
+        Test Case: MONKEY-T49
+    */
     @Test
     public void toggleWifiOnlyUploadButtonUpdatesText()
     {
@@ -52,6 +58,9 @@ public class ToggleButtonsTests extends TestBase
                 .isTrue();
     }
 
+    /*
+        Test Case: MONKEY-T50
+    */
     @Test
     public void toggleVpnOnlyUploadButtonUpdatesSettings() throws ItemNotFoundException
     {
@@ -71,6 +80,9 @@ public class ToggleButtonsTests extends TestBase
                 .isEqualTo("true");
     }
 
+    /*
+        Test Case: MONKEY-T51
+    */
     @Test
     public void toggleVpnOnlyUploadButtonUpdatesText()
     {
@@ -90,6 +102,9 @@ public class ToggleButtonsTests extends TestBase
                 .isTrue();
     }
 
+    /*
+        Test Case: MONKEY-T52
+    */
     @Test
     public void toggleAutoSyncButtonUpdatesSettings() throws ItemNotFoundException
     {
@@ -109,6 +124,9 @@ public class ToggleButtonsTests extends TestBase
                 .isEqualTo("false");
     }
 
+    /*
+        Test Case: MONKEY-T53
+    */
     @Test
     public void toggleAutoSyncButtonUpdatesText()
     {
