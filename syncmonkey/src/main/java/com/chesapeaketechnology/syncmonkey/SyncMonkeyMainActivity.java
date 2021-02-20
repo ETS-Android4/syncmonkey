@@ -392,7 +392,9 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     }
 
     /**
-     * Checks to see if the SAS key is in the app properties.  If it is, then create the config file using the properties
+     * Checks to see if the SAS key is in the app properties.  If it is, then create the config file using the
+     * properties from the app preferences. If the SAS key is not in the app preferences, then copy the config file that
+     * was packaged with the APK.
      */
     public static void installRcloneConfigFile(Context context, AppPreferences appPreferences)
     {
