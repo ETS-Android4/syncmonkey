@@ -1,17 +1,20 @@
 package com.chesapeaketechnology.syncmonkey.tests.settingspage;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyConstants;
 import com.chesapeaketechnology.syncmonkey.TestBase;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeyHomeScreen;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeySettingsScreen;
+
 import net.grandcentrix.tray.core.ItemNotFoundException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.chesapeaketechnology.syncmonkey.helpers.TestUtils.Generate.*;
-import static com.google.common.truth.Truth.*;
-import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.*;
+import static com.chesapeaketechnology.syncmonkey.helpers.TestUtils.Generate.getRandomNumberUsingInts;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertContains;
 
 @RunWith(AndroidJUnit4.class)
 public class ServerConfigTests extends TestBase
@@ -79,7 +82,7 @@ public class ServerConfigTests extends TestBase
         Test Case: MONKEY-T57
     */
     @Test
-    public void updateSyncDirectoriesField() throws ItemNotFoundException
+    public void updateSyncDirectoriesField() throws ItemNotFoundException, InterruptedException
     {
         final String directories = "Download/TestAutomationData:Download/TestAutomationData" + getRandomNumberUsingInts(1, 99);
         SyncMonkeyHomeScreen.clickSettingsGear();

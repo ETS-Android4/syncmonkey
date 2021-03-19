@@ -5,16 +5,20 @@ import androidx.test.espresso.ViewInteraction;
 
 import com.chesapeaketechnology.syncmonkey.R;
 import com.chesapeaketechnology.syncmonkey.helpers.ChildAtPosition;
+
 import org.hamcrest.core.IsInstanceOf;
 
-import static androidx.test.espresso.Espresso.*;
-import static androidx.test.espresso.assertion.ViewAssertions.*;
-import static androidx.test.espresso.matcher.ViewMatchers.*;
-import static com.schibsted.spain.barista.interaction.BaristaClickInteractions.*;
-import static org.hamcrest.Matchers.*;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withParent;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static com.schibsted.spain.barista.interaction.BaristaClickInteractions.clickOn;
+import static org.hamcrest.Matchers.allOf;
 
-public class SyncMonkeyHomeScreen {
-
+public class SyncMonkeyHomeScreen
+{
     public static final Integer settingsGear = R.id.action_settings;
     public static final Integer homePageDescription = R.id.sync_button_description;
 
@@ -58,7 +62,6 @@ public class SyncMonkeyHomeScreen {
         {
             onView(
                     allOf(withId(R.id.sync_button_description),
-                            withParent(withParent(withId(android.R.id.content))),
                             isDisplayed()))
                     .check(matches(withText(message)));
             return true;

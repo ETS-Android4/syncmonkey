@@ -1,28 +1,36 @@
 package com.chesapeaketechnology.syncmonkey.screens;
 
 import android.util.Log;
+
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.ViewInteraction;
+
 import com.chesapeaketechnology.syncmonkey.R;
 import com.chesapeaketechnology.syncmonkey.helpers.ChildAtPosition;
 import com.chesapeaketechnology.syncmonkey.helpers.SettingsPagePositions;
+
 import org.hamcrest.core.IsInstanceOf;
 
-import static androidx.test.espresso.Espresso.*;
-import static androidx.test.espresso.action.ViewActions.*;
-import static androidx.test.espresso.assertion.ViewAssertions.*;
-import static androidx.test.espresso.contrib.RecyclerViewActions.*;
-import static androidx.test.espresso.matcher.ViewMatchers.*;
-import static com.chesapeaketechnology.syncmonkey.helpers.SetSwitchToggleChecked.*;
-import static com.chesapeaketechnology.syncmonkey.matchers.ListViewMatcher.*;
-import static com.schibsted.spain.barista.interaction.BaristaClickInteractions.*;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
+import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
+import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withParent;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static com.chesapeaketechnology.syncmonkey.helpers.SetSwitchToggleChecked.setChecked;
+import static com.chesapeaketechnology.syncmonkey.matchers.ListViewMatcher.withIndex;
+import static com.schibsted.spain.barista.interaction.BaristaClickInteractions.clickOn;
 import static com.schibsted.spain.barista.interaction.BaristaEditTextInteractions.clearText;
-import static com.schibsted.spain.barista.interaction.BaristaEditTextInteractions.*;
-import static org.hamcrest.Matchers.*;
+import static com.schibsted.spain.barista.interaction.BaristaEditTextInteractions.writeTo;
+import static org.hamcrest.Matchers.allOf;
 
 public class SyncMonkeySettingsScreen
 {
-
     private static final String LOG_TAG = SyncMonkeySettingsScreen.class.getSimpleName();
 
     public static ViewInteraction getRecyclerView()
@@ -187,16 +195,7 @@ public class SyncMonkeySettingsScreen
     {
         try
         {
-            onView(
-                    allOf(withContentDescription("Navigate up"),
-                            ChildAtPosition.childAtPosition(
-                                    allOf(withId(R.id.action_bar),
-                                            ChildAtPosition.childAtPosition(
-                                                    withId(R.id.action_bar_container),
-                                                    0)),
-                                    1),
-                            isDisplayed()))
-                    .perform(click());
+            onView(withContentDescription(R.string.abc_action_bar_up_description)).perform(click());
         } catch (NoMatchingViewException e)
         {
             Log.e(LOG_TAG, "Navigate back arrow was not able to be found.");
@@ -298,14 +297,15 @@ public class SyncMonkeySettingsScreen
         }
     }
 
-    public static void setSyncDirectories(String syncDirectories)
+    public static void setSyncDirectories(String syncDirectories) throws InterruptedException
     {
         try
         {
             clickIntoRecyclerPositionedChild(SettingsPagePositions.SYNC_DIRECTORIES_POSITION.getValue());
             enterTextIntoEditField(syncDirectories);
+            Thread.sleep(50); // For whatever reason this delay prevented this test from failing on a Samsung S20
             clickOkConfirmationButton();
-        } catch (NoMatchingViewException e)
+        } catch (NoMatchingViewException | InterruptedException e)
         {
             Log.e(LOG_TAG, "Error setting the sync directories to " + syncDirectories + ".");
             throw e;

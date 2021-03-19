@@ -1,20 +1,22 @@
 package com.chesapeaketechnology.syncmonkey.tests.settingspage;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyConstants;
 import com.chesapeaketechnology.syncmonkey.TestBase;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeyHomeScreen;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeySettingsScreen;
+
 import net.grandcentrix.tray.core.ItemNotFoundException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 @RunWith(AndroidJUnit4.class)
 public class ToggleButtonsTests extends TestBase
 {
-
     /*
         Test Case: MONKEY-T48
      */
@@ -26,14 +28,14 @@ public class ToggleButtonsTests extends TestBase
                 .that(SyncMonkeySettingsScreen.isWifiEnabled())
                 .isTrue();
         assertWithMessage("Application Preferences for WiFi Only are set to true.")
-                .that(TestBase.getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_WIFI_ONLY_KEY))
+                .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_WIFI_ONLY_KEY))
                 .isEqualTo("true");
         SyncMonkeySettingsScreen.toggleWifiOnly(false);
         assertWithMessage("WiFi is disabled after toggling the switch.")
                 .that(SyncMonkeySettingsScreen.isWifiDisabled())
                 .isTrue();
         assertWithMessage("Application Preferences for WiFi Only are set to false.")
-                .that(TestBase.getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_WIFI_ONLY_KEY))
+                .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_WIFI_ONLY_KEY))
                 .isEqualTo("false");
     }
 
@@ -69,14 +71,14 @@ public class ToggleButtonsTests extends TestBase
                 .that(SyncMonkeySettingsScreen.isVpnDisabled())
                 .isTrue();
         assertWithMessage("Application Preferences for VPN Only are set to false.")
-                .that(TestBase.getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_VPN_ONLY_KEY))
+                .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_VPN_ONLY_KEY))
                 .isEqualTo("false");
         SyncMonkeySettingsScreen.toggleVpnOnly(true);
         assertWithMessage("VPN Only Sync is enabled after being toggled.")
                 .that(SyncMonkeySettingsScreen.isVpnEnabled())
                 .isTrue();
         assertWithMessage("Application Preferences for VPN Only are set to true")
-                .that(TestBase.getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_VPN_ONLY_KEY))
+                .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_VPN_ONLY_KEY))
                 .isEqualTo("true");
     }
 
@@ -113,14 +115,14 @@ public class ToggleButtonsTests extends TestBase
                 .that(SyncMonkeySettingsScreen.isAutoSyncEnabled())
                 .isTrue();
         assertWithMessage("Application Preferences for Auto Sync are set to true.")
-                .that(TestBase.getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY))
+                .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY))
                 .isEqualTo("true");
         SyncMonkeySettingsScreen.toggleAutoSync(false);
         assertWithMessage("Auto Sync is disabled after being toggled.")
                 .that(SyncMonkeySettingsScreen.isAutoSyncDisabled())
                 .isTrue();
         assertWithMessage("Application Preferences for Auto Sync are set to false.")
-                .that(TestBase.getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY))
+                .that(getAppPreferences().getString(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY))
                 .isEqualTo("false");
     }
 

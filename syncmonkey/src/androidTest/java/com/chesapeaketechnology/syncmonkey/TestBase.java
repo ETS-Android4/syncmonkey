@@ -1,22 +1,23 @@
 package com.chesapeaketechnology.syncmonkey;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.GrantPermissionRule;
+
 import com.chesapeaketechnology.syncmonkey.helpers.SettingsPagePositions;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeyHomeScreen;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeySettingsScreen;
+
 import net.grandcentrix.tray.AppPreferences;
+
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.runner.RunWith;
 
-@RunWith(AndroidJUnit4.class)
-public class TestBase
+public abstract class TestBase
 {
-    private static final String LOG_TAG = TestBase.class.getSimpleName();
-    private static AppPreferences appPreferences;
+    private AppPreferences appPreferences;
 
     @Rule
     public ActivityScenarioRule<SyncMonkeyMainActivity> activityScenarioRule = new ActivityScenarioRule<>(SyncMonkeyMainActivity.class);
@@ -26,11 +27,6 @@ public class TestBase
             GrantPermissionRule.grant(
                     "android.permission.READ_EXTERNAL_STORAGE",
                     "android.permission.READ_PHONE_STATE");
-
-    public static AppPreferences getAppPreferences()
-    {
-        return appPreferences;
-    }
 
     @Before
     public void init()
@@ -51,5 +47,20 @@ public class TestBase
         SyncMonkeySettingsScreen.setSwitchToggle(SettingsPagePositions.VPN_ONLY_POSITION.getValue(), false);
         SyncMonkeySettingsScreen.setSwitchToggle(SettingsPagePositions.AUTO_SYNC_ENABLED_POSITION.getValue(), true);
         SyncMonkeySettingsScreen.clickBackArrow();
+    }
+
+    public AppPreferences getAppPreferences()
+    {
+        return appPreferences;
+    }
+
+    /**
+     * @param resourceId The string.xml resource ID to get the String object for.
+     * @return The String object corresponding to the provided {@code resourceId}.
+     */
+    @NonNull
+    public String getString(@StringRes int resourceId)
+    {
+        return ApplicationProvider.getApplicationContext().getString(resourceId);
     }
 }

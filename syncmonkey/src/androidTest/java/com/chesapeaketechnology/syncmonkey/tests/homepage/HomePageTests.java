@@ -1,18 +1,20 @@
 package com.chesapeaketechnology.syncmonkey.tests.homepage;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import com.chesapeaketechnology.syncmonkey.R;
 import com.chesapeaketechnology.syncmonkey.TestBase;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeyHomeScreen;
 import com.chesapeaketechnology.syncmonkey.screens.SyncMonkeySettingsScreen;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 @RunWith(AndroidJUnit4.class)
 public class HomePageTests extends TestBase
 {
-
     /*
         Test Case: MONKEY-T47
      */
@@ -25,7 +27,7 @@ public class HomePageTests extends TestBase
                 .isTrue();
         SyncMonkeySettingsScreen.clickBackArrow();
         assertWithMessage("The default sync message on the home screen matches the expected value.")
-                .that(SyncMonkeyHomeScreen.assertApplicationTitle("All files will be automatically synced at a scheduled interval. Use the Sync Button below to force a sync."))
+                .that(SyncMonkeyHomeScreen.assertApplicationTitle(getString(R.string.sync_button_auto_upload_description)))
                 .isTrue();
     }
 
@@ -45,7 +47,7 @@ public class HomePageTests extends TestBase
                 .isTrue();
         SyncMonkeySettingsScreen.clickBackArrow();
         assertWithMessage("Home screen message is updated when AutoSync is disabled,")
-                .that(SyncMonkeyHomeScreen.assertApplicationTitle("Auto upload is disabled. Syncing will only occur using the Sync Button below."))
+                .that(SyncMonkeyHomeScreen.assertApplicationTitle(getString(R.string.sync_button_manual_upload_description)))
                 .isTrue();
         SyncMonkeyHomeScreen.clickSettingsGear();
         SyncMonkeySettingsScreen.toggleAutoSync(true);
