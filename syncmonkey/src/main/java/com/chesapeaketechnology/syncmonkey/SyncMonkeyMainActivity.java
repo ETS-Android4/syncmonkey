@@ -33,6 +33,9 @@ import com.chesapeaketechnology.syncmonkey.settings.SettingsActivity;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import net.grandcentrix.tray.AppPreferences;
+import net.grandcentrix.tray.TrayPreferences;
+import net.grandcentrix.tray.core.OnTrayPreferenceChangeListener;
+import net.grandcentrix.tray.core.TrayStorage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -56,7 +59,9 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     private static final int ACCESS_PERMISSION_REQUEST_ID = 1;
 
     private AppPreferences appPreferences;
+    private TrayPreferences statusInformation;
     private BroadcastReceiver managedConfigurationListener;
+    private OnTrayPreferenceChangeListener statusInformationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -66,6 +71,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         Log.i(LOG_TAG, "Starting the SyncMonkey App");
 
         appPreferences = new AppPreferences(this);
+        statusInformation = new TrayPreferences(this, SyncMonkeyConstants.TRAY_STATUS_MODULE, 1, TrayStorage.Type.DEVICE);
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
@@ -130,7 +136,10 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             appPreferences = new AppPreferences(this);
         }
 
+        registerForStatusChanges();
+
         updateSyncButtonDescription();
+        updateSyncStatusUi();
 
         // Per the Android developer tutorials it is recommended to read the managed configuration in the onResume method
         readSyncMonkeyProperties(this, appPreferences); // The properties and managed config need to be read before installing the rclone config file
@@ -148,6 +157,8 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     protected void onPause()
     {
         super.onPause();
+
+        unregisterForStatusChanges();
 
         if (managedConfigurationListener != null)
         {
@@ -292,6 +303,61 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         final String description = getString(autoSync ? R.string.sync_button_auto_upload_description : R.string.sync_button_manual_upload_description);
 
         ((TextView) findViewById(R.id.sync_button_description)).setText(description);
+    }
+
+    /**
+     * We need to get the latest status information from the Tray Preferences so that we can update the UI. The Tray
+     * Preferences are used to handle these status updates because Tray can handle changes to the preference values
+     * from different processes, and the syncing happens in a different process.
+     * <p>
+     * Updates for the status UI can come in from multiple threads, so we need to synchronize this method.
+     *
+     * @since 1.0.0
+     */
+    private synchronized void updateSyncStatusUi()
+    {
+        try
+        {
+            final String lastSuccess = statusInformation.getString(SyncMonkeyConstants.STATUS_PROPERTY_LAST_SUCCESSFUL_TIME_KEY, "Unknown");
+            final String lastSyncStatus = statusInformation.getString(SyncMonkeyConstants.STATUS_PROPERTY_LAST_SYNC_STATUS_KEY, "Unknown");
+
+            final TextView lastSuccessfulView = findViewById(R.id.last_successful_sync_value);
+            lastSuccessfulView.setText(lastSuccess);
+
+            final TextView syncStatusView = findViewById(R.id.sync_status_value);
+            syncStatusView.setText(lastSyncStatus);
+        } catch (Exception e)
+        {
+            Log.wtf(LOG_TAG, "Something went wrong when trying to update the sync status UI", e);
+        }
+    }
+
+    /**
+     * Register for changes to the {@link #statusInformation}. Changes will be fired from the sync adapter.
+     *
+     * @since 1.0.0
+     */
+    private void registerForStatusChanges()
+    {
+        if (statusInformationListener == null)
+        {
+            statusInformationListener = items -> updateSyncStatusUi();
+            statusInformation.registerOnTrayPreferenceChangeListener(statusInformationListener);
+        }
+    }
+
+    /**
+     * Unregister for changes to the {@link #statusInformation}.
+     *
+     * @since 1.0.0
+     */
+    private void unregisterForStatusChanges()
+    {
+        if (statusInformationListener != null)
+        {
+            statusInformation.unregisterOnTrayPreferenceChangeListener(statusInformationListener);
+            statusInformationListener = null;
+        }
     }
 
     /**

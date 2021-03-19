@@ -69,4 +69,9 @@ public class SyncMonkeyConstants
     public static final String PROPERTY_WIFI_ONLY_KEY = "wifiOnly";
 
     public static final String DEFAULT_DEVICE_ID = "UnknownDeviceId";
+
+    // Tray Preferences used for the syncing status
+    public static final String TRAY_STATUS_MODULE = "sync_monkey_sync_status_module";
+    public static final String STATUS_PROPERTY_LAST_SUCCESSFUL_TIME_KEY = "status_last_success";
+    public static final String STATUS_PROPERTY_LAST_SYNC_STATUS_KEY = "status_last_sync_status";
 }

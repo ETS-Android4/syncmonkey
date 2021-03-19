@@ -16,16 +16,21 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 
+import com.chesapeaketechnology.syncmonkey.BuildConfig;
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyConstants;
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyMainActivity;
+import com.chesapeaketechnology.syncmonkey.SyncMonkeyUtils;
 import com.chesapeaketechnology.syncmonkey.fileupload.Items.RemoteItem;
 
 import net.grandcentrix.tray.AppPreferences;
+import net.grandcentrix.tray.TrayPreferences;
+import net.grandcentrix.tray.core.TrayStorage;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
 
 /**
  * Handle the transfer of data between a server and an
@@ -37,7 +42,8 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
     private final Rclone rclone;
     private final String dataDirectoryPath;
-    private AppPreferences appPreferences;
+    private final AppPreferences appPreferences;
+    private final TrayPreferences statusInformation;
 
     /**
      * Set up the sync adapter
@@ -57,6 +63,7 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
         super(context, autoInitialize, allowParallelSyncs);
 
         appPreferences = new AppPreferences(context);
+        statusInformation = new TrayPreferences(context, SyncMonkeyConstants.TRAY_STATUS_MODULE, 1, TrayStorage.Type.DEVICE);
 
         rclone = new Rclone(context);
         dataDirectoryPath = Environment.getExternalStorageDirectory().getPath() + "/";
@@ -72,6 +79,8 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
     {
         try
         {
+            updateSyncStatus("Checking Sync Preferences");
+
             final boolean autoSync = appPreferences.getBoolean(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY, true);
             final boolean expedited = extras.getBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
             if (!autoSync && !expedited) return;
@@ -89,19 +98,26 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
             if (transmitOnlyOnWiFi && !isWiFiConnected())
             {
-                Log.i(LOG_TAG, "Skipping upload because wifi is not connected and the wifiOnly property is true");
+                updateSyncStatus("Skipping upload because Wi-Fi is not connected and the Wi-Fi Only setting is enabled");
                 return;
             }
 
             if (transmitOnlyOnVpn)
             {
-                if (isVpnEnabled()) uploadFiles();
+                if (isVpnEnabled())
+                {
+                    uploadFiles();
+                } else
+                {
+                    updateSyncStatus("Skipping upload because the VPN is not connected and the VPN Only setting is enabled");
+                }
             } else
             {
                 uploadFiles();
             }
         } catch (Exception e)
         {
+            updateSyncStatus("Sync failed because of an unexpected error");
             Log.e(LOG_TAG, "Caught an exception when trying to perform a sync", e);
         }
     }
@@ -156,7 +172,7 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
             if (Log.isLoggable(LOG_TAG, Log.INFO))
             {
-                Log.i(LOG_TAG, "Network " + i + ": " + networks[i].toString());
+                Log.i(LOG_TAG, "Network " + i + ": " + networks[i]);
             }
 
             if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
@@ -251,23 +267,30 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
             if (containerName == null)
             {
-                Log.e(LOG_TAG, "Could not upload any files because the containerName was null");
+                final String msg = "Could not upload any files because the containerName was null";
+                Log.e(LOG_TAG, msg);
+                updateSyncStatus(msg);
                 return;
             }
+
+            updateSyncStatus("Sync preference checks passed, starting upload");
 
             final RemoteItem remote = new RemoteItem(SyncMonkeyConstants.AZURE_CONFIG_NAME + SyncMonkeyConstants.COLON_SEPARATOR + containerName, SyncMonkeyConstants.AZURE_REMOTE_TYPE);
 
             // First, sync any files in the private shared directory
             final String privateAppFilesSyncDirectory = new File(getContext().getFilesDir(), SyncMonkeyConstants.PRIVATE_SHARED_SYNC_DIRECTORY).getPath();
-            processDirectoryForUpload(privateAppFilesSyncDirectory, deviceId, remote);
+            boolean anyDirectorySuccess = processDirectoryForUpload(privateAppFilesSyncDirectory, deviceId, remote);
 
-            //noinspection ConstantConditions
             for (String relativeSyncDirectory : localSyncDirectories.split(SyncMonkeyConstants.COLON_SEPARATOR))
             {
                 if (relativeSyncDirectory.isEmpty()) continue;
 
-                processDirectoryForUpload(dataDirectoryPath + relativeSyncDirectory, deviceId, remote);
+                final boolean success = processDirectoryForUpload(dataDirectoryPath + relativeSyncDirectory, deviceId, remote);
+                if (success) anyDirectorySuccess = success;
             }
+
+            updateSyncStatus(anyDirectorySuccess ? "Upload successful" : "Uploaded failed");
+            if (anyDirectorySuccess) updateLastSuccessfulSyncTime();
         }
     }
 
@@ -278,7 +301,7 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
      * @param deviceId          The device ID which will be used as the folder name on the remote server.
      * @param remote            The remote server to sync the files with.
      */
-    private void processDirectoryForUpload(String syncDirectoryPath, String deviceId, RemoteItem remote)
+    private boolean processDirectoryForUpload(String syncDirectoryPath, String deviceId, RemoteItem remote)
     {
         if (Log.isLoggable(LOG_TAG, Log.INFO))
         {
@@ -293,16 +316,19 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
         if (currentProcess != null)
         {
-            try (final BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getErrorStream())))
+            // Only print out the process stdout if the app is a debug APK
+            if (BuildConfig.DEBUG)
             {
-                String line;
-                //String notificationContent = "";
-                //String[] notificationBigText = new String[5];
-                while ((line = reader.readLine()) != null)
+                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getErrorStream())))
                 {
-                    Log.d(LOG_TAG, line);
+                    String line;
+                    //String notificationContent = "";
+                    //String[] notificationBigText = new String[5];
+                    while ((line = reader.readLine()) != null)
+                    {
+                        Log.d(LOG_TAG, line);
 
-                    // This code might be useful to show toasts with specific transfer information
+                        // This code might be useful to show toasts with specific transfer information
                         /*if (line.startsWith("Transferred:") && !line.matches("Transferred:\\s+\\d+\\s+/\\s+\\d+,\\s+\\d+%$"))
                         {
                             String s = line.substring(12).trim();
@@ -325,10 +351,11 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
                         {
                             log2File.log(line);
                         }*/
+                    }
+                } catch (IOException e)
+                {
+                    Log.e(LOG_TAG, "Caught an exception when trying to read the output from the upload process", e);
                 }
-            } catch (IOException e)
-            {
-                Log.e(LOG_TAG, "Caught an exception when trying to read the output from the upload process", e);
             }
 
             try
@@ -342,5 +369,31 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
         boolean result = currentProcess != null && currentProcess.exitValue() == 0;
         Log.i(LOG_TAG, "rclone upload result=" + result);
+        return result;
+    }
+
+    /**
+     * Updates the status information in the Tray Preferences {@link #statusInformation} so that any UIs can display
+     * the latest status.
+     *
+     * @param newStatus The new status information to display to the user.
+     * @since 1.0.0
+     */
+    private void updateSyncStatus(String newStatus)
+    {
+        Log.i(LOG_TAG, newStatus);
+        statusInformation.put(SyncMonkeyConstants.STATUS_PROPERTY_LAST_SYNC_STATUS_KEY, newStatus);
+    }
+
+    /**
+     * Updates the status information in the Tray Preferences {@link #statusInformation} so that any UIs can display
+     * the latest status.
+     *
+     * @since 1.0.0
+     */
+    private void updateLastSuccessfulSyncTime()
+    {
+        Log.d(LOG_TAG, "Updating the last successful sync time");
+        statusInformation.put(SyncMonkeyConstants.STATUS_PROPERTY_LAST_SUCCESSFUL_TIME_KEY, SyncMonkeyUtils.getDateTimeString(LocalDateTime.now()));
     }
 }

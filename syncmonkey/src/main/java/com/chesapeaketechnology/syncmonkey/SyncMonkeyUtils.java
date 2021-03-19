@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,6 +32,8 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public final class SyncMonkeyUtils
 {
     private static final String LOG_TAG = SyncMonkeyUtils.class.getSimpleName();
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HHmm zzz").withZone(ZoneId.systemDefault());
 
     /**
      * Copies the provided input stream to the provided output stream.
@@ -93,6 +96,18 @@ public final class SyncMonkeyUtils
         final File privateAppFilesSyncDirectory = new File(context.getFilesDir(), SyncMonkeyConstants.PRIVATE_SHARED_SYNC_DIRECTORY);
         if (!privateAppFilesSyncDirectory.exists()) privateAppFilesSyncDirectory.mkdir();
         return privateAppFilesSyncDirectory;
+    }
+
+    /**
+     * Gets a human readable date/time string to display to the user.
+     *
+     * @param localDateTime The date/time to convert to a string.
+     * @return The human readable date/time string.
+     * @since 1.0.0
+     */
+    public static String getDateTimeString(LocalDateTime localDateTime)
+    {
+        return DATE_TIME_FORMATTER.format(localDateTime);
     }
 
     /**

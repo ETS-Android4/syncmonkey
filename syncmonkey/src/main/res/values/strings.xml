@@ -20,6 +20,8 @@
     <string name="sync_button_manual_upload_description">Auto upload is disabled.  Syncing will only
         occur using the Sync Button below.</string>
     <string name="sync_button_text">Sync Now</string>
+    <string name="last_successful_sync_label">Last Successful Sync:</string>
+    <string name="sync_status_label">Last Sync Status:</string>
 
     <string name="container_name_title">Container Name</string>
     <string name="container_name_description">The name of the Azure Blob Storage container where the files will be uploaded to</string>
