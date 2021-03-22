@@ -79,7 +79,7 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
     {
         try
         {
-            updateSyncStatus("Checking Sync Preferences");
+            updateSyncStatus("Checking Sync Preferences ...");
 
             final boolean autoSync = appPreferences.getBoolean(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY, true);
             final boolean expedited = extras.getBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
@@ -273,7 +273,7 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
                 return;
             }
 
-            updateSyncStatus("Sync preference checks passed, starting upload");
+            updateSyncStatus("Sync preference checks passed, starting upload ...");
 
             final RemoteItem remote = new RemoteItem(SyncMonkeyConstants.AZURE_CONFIG_NAME + SyncMonkeyConstants.COLON_SEPARATOR + containerName, SyncMonkeyConstants.AZURE_REMOTE_TYPE);
 
