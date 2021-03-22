@@ -8,6 +8,7 @@ import androidx.test.espresso.ViewInteraction;
 import com.chesapeaketechnology.syncmonkey.R;
 import com.chesapeaketechnology.syncmonkey.helpers.ChildAtPosition;
 import com.chesapeaketechnology.syncmonkey.helpers.SettingsPagePositions;
+import com.schibsted.spain.barista.interaction.BaristaSleepInteractions;
 
 import org.hamcrest.core.IsInstanceOf;
 
@@ -297,15 +298,15 @@ public class SyncMonkeySettingsScreen
         }
     }
 
-    public static void setSyncDirectories(String syncDirectories) throws InterruptedException
+    public static void setSyncDirectories(String syncDirectories)
     {
         try
         {
             clickIntoRecyclerPositionedChild(SettingsPagePositions.SYNC_DIRECTORIES_POSITION.getValue());
             enterTextIntoEditField(syncDirectories);
-            Thread.sleep(50); // For whatever reason this delay prevented this test from failing on a Samsung S20
+            BaristaSleepInteractions.sleep(50); // For whatever reason this delay prevented this test from failing on a Samsung S20
             clickOkConfirmationButton();
-        } catch (NoMatchingViewException | InterruptedException e)
+        } catch (NoMatchingViewException e)
         {
             Log.e(LOG_TAG, "Error setting the sync directories to " + syncDirectories + ".");
             throw e;

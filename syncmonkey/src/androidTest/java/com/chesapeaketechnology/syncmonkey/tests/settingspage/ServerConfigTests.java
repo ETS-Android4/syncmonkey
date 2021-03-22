@@ -82,7 +82,7 @@ public class ServerConfigTests extends TestBase
         Test Case: MONKEY-T57
     */
     @Test
-    public void updateSyncDirectoriesField() throws ItemNotFoundException, InterruptedException
+    public void updateSyncDirectoriesField() throws ItemNotFoundException
     {
         final String directories = "Download/TestAutomationData:Download/TestAutomationData" + getRandomNumberUsingInts(1, 99);
         SyncMonkeyHomeScreen.clickSettingsGear();
