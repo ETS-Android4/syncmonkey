@@ -5,7 +5,7 @@
 
 The Sync Monkey Android App enables files on the Android device to be synced with a Microsoft Azure Blob storage.
 
-![App Screenshot](screenshots/Main_Screenshot_0.0.1.png "The Sync Monkey App Main Screen")
+![App Screenshot](screenshots/Main_Screenshot.png "The Sync Monkey App Main Screen")
 
 ## Getting Started
 
@@ -25,6 +25,8 @@ Install Android Studio to work on this code.
 [The Google Play Listing for this app](https://play.google.com/store/apps/details?id=com.chesapeaketechnology.syncmonkey)
 
 ## Changelog
+##### [1.0.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.0.0) - 2021-03-24
+ * Added a status UI on the main screen that indicates the last successful sync date/time and the last sync status.
 
 ##### [0.2.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.2.0) - 2020-11-17
  * The origin directory is now retained when uploading to the remote Azure blob storage account.
