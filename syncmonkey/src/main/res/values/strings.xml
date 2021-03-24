@@ -15,10 +15,10 @@
     <string name="sync_account_type">com.rfmonkey</string>
     <string name="content_authority">com.chesapeaketechnology.sycnmonkey.provider</string>
 
-    <string name="sync_button_auto_upload_description">All files will be automatically synced at a scheduled interval.
-        Use the Sync Button below to force a sync.</string>
-    <string name="sync_button_manual_upload_description">Auto upload is disabled.  Syncing will only
-        occur using the Sync Button below.</string>
+    <string name="sync_button_auto_upload_description"><![CDATA[All files will be automatically synced at a scheduled interval.
+        Use the <b>Sync Now</b> Button below to force a sync.]]></string>
+    <string name="sync_button_manual_upload_description"><![CDATA[Auto upload is disabled. Syncing will only
+        occur using the <b>Sync Now</b> Button below.]]></string>
     <string name="sync_button_text">Sync Now</string>
     <string name="last_successful_sync_label">Last Successful Sync:</string>
     <string name="sync_status_label">Last Sync Status:</string>

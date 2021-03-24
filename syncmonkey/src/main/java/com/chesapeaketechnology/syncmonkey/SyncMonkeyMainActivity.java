@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -302,7 +303,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         final boolean autoSync = appPreferences.getBoolean(SyncMonkeyConstants.PROPERTY_AUTO_SYNC_KEY, false);
         final String description = getString(autoSync ? R.string.sync_button_auto_upload_description : R.string.sync_button_manual_upload_description);
 
-        ((TextView) findViewById(R.id.sync_button_description)).setText(description);
+        ((TextView) findViewById(R.id.sync_button_description)).setText(Html.fromHtml(description, Html.FROM_HTML_MODE_COMPACT));
     }
 
     /**

@@ -25,7 +25,7 @@ Install Android Studio to work on this code.
 [The Google Play Listing for this app](https://play.google.com/store/apps/details?id=com.chesapeaketechnology.syncmonkey)
 
 ## Changelog
-##### [1.0.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.0.0) - 2021-03-22
+##### [1.0.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.0.0) - 2021-03-24
  * Added a status UI on the main screen that indicates the last successful sync date/time and the last sync status.
 
 ##### [0.2.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v0.2.0) - 2020-11-17
