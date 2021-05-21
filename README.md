@@ -25,6 +25,9 @@ Install Android Studio to work on this code.
 [The Google Play Listing for this app](https://play.google.com/store/apps/details?id=com.chesapeaketechnology.syncmonkey)
 
 ## Changelog
+##### [1.1.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.1.0) - 2021-05-21
+ * Fixed a bug where Sync Monkey could not read directories it did not create.
+
 ##### [1.0.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.0.0) - 2021-03-24
  * Added a status UI on the main screen that indicates the last successful sync date/time and the last sync status.
 
