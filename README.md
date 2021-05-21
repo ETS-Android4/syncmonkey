@@ -16,9 +16,19 @@ To build and install the project follow the steps below:
     3) Connect an Android Phone (make sure debugging is enabled on the device).
     4) Install and run the app by clicking the "Play" button in Android Studio.
 
-### Prerequisites
+## Custom Config for Azure Blob Upload
 
-Install Android Studio to work on this code.
+You can either configure the app to upload to Azure Blob storage via the settings UI, or you can
+preload an rclone.conf file with the Azure Blob Storage SAS URL. Following are steps for the rclone.conf file.
+
+1. Create a file at `syncmonkey/src/main/assets/rclone.conf`
+1. Place the following text in the file.
+        ```
+        [azureconfig]
+        type = azureblob
+        sas_url = https://<BLOB_CONTAINER_SAS_URL>
+        ```
+1. Replace the `sas_url` with the full https SAS URL pulled from the Azure portal.
 
 ## Google Play Listing
 
