@@ -30,7 +30,7 @@ preload an rclone.conf file with the Azure Blob Storage SAS URL. Following are s
    ```
 1. Replace the `sas_url` with the full https Blob service SAS URL pulled from the Azure portal.
     1. For example, this image shows the correct options to select, and points to the correct value `Blob service SAS URL` to use
-    1. ![azure_img.png](azure_img.png)
+    1. ![azure_img.png](screenshots/azure_img.png)
 
 ## Google Play Listing
 
