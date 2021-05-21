@@ -22,6 +22,7 @@ You can either configure the app to upload to Azure Blob storage via the setting
 preload an rclone.conf file with the Azure Blob Storage SAS URL. Following are steps for the rclone.conf file.
 
 1. Create a file at `syncmonkey/src/main/assets/rclone.conf`.
+    1. ![rclone_file.png](screenshots/rclone_file.png)
 1. Place the following text in the file.
    ```
    [azureconfig]
