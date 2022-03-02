@@ -18,26 +18,16 @@ To build and install the project follow the steps below:
 
 ## Custom Config for Azure Blob Upload
 
-You can either configure the app to upload to Azure Blob storage via the settings UI, or you can
-preload an rclone.conf file with the Azure Blob Storage SAS URL. Following are steps for the rclone.conf file.
-
-1. Create a file at `syncmonkey/src/main/assets/rclone.conf`.
-    1. ![rclone_file.png](screenshots/rclone_file.png)
-1. Place the following text in the file.
-   ```
-   [azureconfig]
-   type = azureblob
-   sas_url = <BLOB_SERVICE_SAS_URL>
-   ```
-1. Replace the `sas_url` with the full https Blob service SAS URL pulled from the Azure portal.
-    1. For example, this image shows the correct options to select, and points to the correct value `Blob service SAS URL` to use
-    1. ![azure_img.png](screenshots/azure_img.png)
+You can configure the app to upload to Azure Blob storage via the settings UI.
 
 ## Google Play Listing
 
 [The Google Play Listing for this app](https://play.google.com/store/apps/details?id=com.chesapeaketechnology.syncmonkey)
 
 ## Changelog
+##### [1.2.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.2.0) - 2022-03-01
+* Substituted Azure Blob Storage SDK for rclone as a method of uploading files to Azure.
+
 ##### [1.1.0](https://github.com/chesapeaketechnology/syncmonkey/releases/tag/v1.1.0) - 2021-05-21
 * Fixed a bug where Sync Monkey could not read directories it did not create.
 
