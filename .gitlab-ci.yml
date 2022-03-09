@@ -1,0 +1,115 @@
+image: jangrewe/gitlab-ci-android
+
+cache:
+  key: ${CI_PROJECT_ID}
+  paths:
+    - .gradle/
+
+before_script:
+  - export GRADLE_USER_HOME=$(pwd)/.gradle
+  - chmod +x ./gradlew
+
+stages:
+  - test
+  - assembleDebugApk
+  - deployDebugApk
+  - assembleReleaseApk
+  - deployRepleaseApk
+  - assembleReleaseBundle
+  - deployBundle
+
+testDebug:
+  stage: test
+  only:
+    - develop
+  script:
+    - ./gradlew -Pci --console=plain testDebug
+
+assembleDebug:
+  stage: assembleDebugApk
+  only:
+    - debug
+  script:
+    - ./gradlew assembleDebugApk
+  artifacts:
+    paths:
+      - build/outputs/apk/debug
+
+deployDebug:
+  stage: deployDebugApk
+  only:
+    - develop
+  script:
+    - |
+      curl \
+        -F token="${APK_SLACK_CHANNEL_ACCESS_TOKEN}" \
+        -F channels="${APK_SLACK_CHANNEL_ID}" \
+        -F initial_comment="Hello Team! Here is the latest Sync Monkey debug APK" \
+        -F "file=@$(find build/outputs/apk/debug -name '*syncmonkey*')" \
+        https://slack.com/api/files.upload
+  cache: {}
+
+testRelease:
+  stage: test
+  only:
+    - tags
+  script:
+    - ./gradlew -Pci --console=plain testRelease
+
+assembleReleaseApk:
+  stage: assembleReleaseApk
+  only:
+    - tags
+  script:
+    - echo $KEYSTORE_FILE | base64 -d > my.keystore
+    - ./gradlew assembleConversationsFreeSystemRelease
+      -Pandroid.injected.signing.store.file=$(pwd)/my.keystore
+      -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD
+      -Pandroid.injected.signing.key.alias=$KEY_ALIAS
+      -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+  artifacts:
+    paths:
+      - build/outputs/apk/release
+
+deployReleaseApk:
+  stage: deployRepleaseApk
+  only:
+    - tags
+  script:
+    - |
+      curl \
+        -F token="${APK_SLACK_CHANNEL_ACCESS_TOKEN}" \
+        -F channels="${APK_SLACK_CHANNEL_ID}" \
+        -F initial_comment="Hello Team! Here is the latest Sync Monkey release APK" \
+        -F "file=@$(find build/outputs/apk/release -name 'syncmonkey*')" \
+        https://slack.com/api/files.upload
+  cache: {}
+
+assembleReleaseBundle:
+  stage: assembleReleaseBundle
+  only:
+    - tags
+  script:
+    - echo $KEYSTORE_FILE | base64 -d > my.keystore
+    - ./gradlew bundleConversationsFreeSystemRelease
+      -Pandroid.injected.signing.store.file=$(pwd)/my.keystore
+      -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD
+      -Pandroid.injected.signing.key.alias=$KEY_ALIAS
+      -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+  artifacts:
+    paths:
+      - build/outputs/bundle/release
+
+deployReleaseBundle:
+  stage: deployBundle
+  only:
+    - tags
+  script:
+    - |
+      curl \
+        -F token="${APK_SLACK_CHANNEL_ACCESS_TOKEN}" \
+        -F channels="${APK_SLACK_CHANNEL_ID}" \
+        -F initial_comment="Hello Team! Here is the latest Sync Monkey release Bundle" \
+        -F "file=@$(find build/outputs/bundle/conversationsFreeSystemRelease -name 'syncmonkey*')" \
+        https://slack.com/api/files.upload
+  cache: {}

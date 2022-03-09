@@ -143,29 +143,6 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        super.onActivityResult(requestCode, resultCode, data);
-//        if (resultCode == RESULT_OK && requestCode == OPEN_DIRECTORY_REQUEST_CODE)
-//        {
-//            Uri uriTree = data.getData();
-//            if (uriTree == null)
-//            {
-//                Log.e(LOG_TAG, "Read permission to sync folder denied");
-//                return;
-//            }
-//
-//            //take persist permission for later use
-//            Log.i(LOG_TAG, "Read permission to " + uriTree.getPath() + " granted");
-//            getContentResolver().takePersistableUriPermission(uriTree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//
-//            Parcel parcel = Parcel.obtain();
-//            uriTree.writeToParcel(parcel, 0);
-//            appPreferences.put("FOLDER_TO_SYNC", parcel.toString());
-//        }
-    }
-
-    @Override
     protected void onResume()
     {
         super.onResume();
