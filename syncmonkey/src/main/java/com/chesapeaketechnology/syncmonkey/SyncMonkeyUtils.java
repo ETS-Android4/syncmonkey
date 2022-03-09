@@ -111,36 +111,6 @@ public final class SyncMonkeyUtils
     }
 
     /**
-     * Extracts the Azure SAS URL from an rclone.conf file.
-     *
-     * @param rcloneConfPath Path of rclone.conf file
-     * @return SAS URI object
-     * @since 0.1.2
-     */
-    static Optional<Uri> getSasUrlFromConfFile(Path rcloneConfPath)
-    {
-        try (Stream<String> lines = Files.lines(rcloneConfPath))
-        {
-            final Optional<String> sasUrl = lines.filter(l -> l.startsWith("sas_url")).findFirst();
-
-            if (sasUrl.isPresent())
-            {
-                final String sasUrlLine = sasUrl.get();
-                final String urlString = sasUrlLine.substring(sasUrlLine.indexOf('=') + 1);
-                return Optional.of(Uri.parse(urlString));
-            } else
-            {
-                Log.i(LOG_TAG, "No sas_url line found in rclone.conf");
-                return Optional.empty();
-            }
-        } catch (Exception e)
-        {
-            Log.e(LOG_TAG, "Error reading rclone.conf, the file may be empty or non-existent", e);
-            return Optional.empty();
-        }
-    }
-
-    /**
      * Parses an ISO 8601 compliant date string into a Java Date. Only a subset of ISO 8601
      * dates are supported. See Azure documentation for more details on valid date strings:
      * https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas#specifying-the-signature-validity-interval

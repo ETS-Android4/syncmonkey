@@ -14,7 +14,6 @@ public class SyncMonkeyConstants
     {
     }
 
-    public static final String RCLONE_CONFIG_FILE = "rclone.conf";
     public static final String PRIVATE_SHARED_SYNC_DIRECTORY = "sharedfiles";
     public static final String DEFAULT_SHARED_TEXT_FILE_NAME = "Text_To_Share.txt";
     public static final String SYNC_MONKEY_PROPERTIES_FILE = "syncmonkey.properties";
@@ -23,7 +22,7 @@ public class SyncMonkeyConstants
 
     /**
      * A custom action that other apps can use to trigger a sync in the Sync Monkey App.  Sending an intent with this
-     * action will kick off a running of rclone to upload the content of the local directories to the remote system.
+     * action will kick off an upload of the content of the local directories to the remote system.
      *
      * @since 0.1.1
      */

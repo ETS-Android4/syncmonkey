@@ -12,6 +12,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Parcel;
+import android.provider.DocumentsContract;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.Html;
@@ -35,8 +38,11 @@ import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import net.grandcentrix.tray.AppPreferences;
 import net.grandcentrix.tray.TrayPreferences;
+import net.grandcentrix.tray.core.ItemNotFoundException;
 import net.grandcentrix.tray.core.OnTrayPreferenceChangeListener;
 import net.grandcentrix.tray.core.TrayStorage;
+
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,8 +51,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Properties;
@@ -58,6 +66,7 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     private static final String LOG_TAG = SyncMonkeyMainActivity.class.getSimpleName();
 
     private static final int ACCESS_PERMISSION_REQUEST_ID = 1;
+    private static final int OPEN_DIRECTORY_REQUEST_CODE = 0xf111;
 
     private AppPreferences appPreferences;
     private TrayPreferences statusInformation;
@@ -89,6 +98,14 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
                         Manifest.permission.READ_PHONE_STATE,
                         Manifest.permission.READ_EXTERNAL_STORAGE},
                 ACCESS_PERMISSION_REQUEST_ID);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(intent, OPEN_DIRECTORY_REQUEST_CODE);
+            }
+        }
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(this::updateAndroidAdIdFile);
@@ -143,10 +160,9 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
         updateSyncStatusUi();
 
         // Per the Android developer tutorials it is recommended to read the managed configuration in the onResume method
-        readSyncMonkeyProperties(this, appPreferences); // The properties and managed config need to be read before installing the rclone config file
+        readSyncMonkeyProperties(this, appPreferences);
         readSyncMonkeyManagedConfiguration(this, appPreferences);
 
-        installRcloneConfigFile(this, appPreferences);
         checkSasUrlExpiration();
 
         managedConfigurationListener = registerManagedConfigurationListener(getApplicationContext(), appPreferences);
@@ -276,23 +292,16 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
      */
     private void runSyncAdapter()
     {
-        if (hasRcloneConfigFile())
+        try
         {
+            appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY);
             FileUploadSyncAdapter.runSyncAdapterNow(getApplicationContext());
-        } else
+        } catch (ItemNotFoundException e)
         {
             final String noSasUrlMessage = "No Azure SAS URL found, enter it in the User Settings";
             Toast.makeText(getApplicationContext(), noSasUrlMessage, Toast.LENGTH_LONG).show();
             Log.e(LOG_TAG, noSasUrlMessage);
         }
-    }
-
-    /**
-     * @return True if the rclone configuration file is present in the Apps private storage area, false otherwise.
-     */
-    private boolean hasRcloneConfigFile()
-    {
-        return new File(getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE).exists();
     }
 
     /**
@@ -449,7 +458,6 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             public void onReceive(Context context, Intent intent)
             {
                 readSyncMonkeyManagedConfiguration(context, appPreferences);
-                installRcloneConfigFile(context, appPreferences);
             }
         };
 
@@ -459,100 +467,10 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
     }
 
     /**
-     * Checks to see if the SAS key is in the app properties.  If it is, then create the config file using the
-     * properties from the app preferences. If the SAS key is not in the app preferences, then copy the config file that
-     * was packaged with the APK.
-     */
-    public static void installRcloneConfigFile(Context context, AppPreferences appPreferences)
-    {
-        final String sasUrl = appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY, "");
-        if (sasUrl != null && !sasUrl.isEmpty())
-        {
-            Log.i(LOG_TAG, "Found the Azure SAS URL Property, creating a new rclone.conf file");
-            createNewRcloneConfigFile(context, appPreferences);
-        } else
-        {
-            Log.i(LOG_TAG, "Did not find the Azure SAS URL Property, copying the rclone.conf file that was packaged with the APK");
-            copyRcloneConfigFile(context);
-        }
-    }
-
-    /**
-     * Creates a new {@link SyncMonkeyConstants#RCLONE_CONFIG_FILE} in the app's private storage area using the values from the shared preferences.
-     */
-    private static synchronized void createNewRcloneConfigFile(Context context, AppPreferences appPreferences)
-    {
-        final File rcloneConfigFile = new File(context.getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE);
-
-        // The rclone.conf file does not exist, so copy it out of assets.
-        try (final OutputStream privateAppRcloneConfigFileOutputStream = new FileOutputStream(rcloneConfigFile))
-        {
-            final String sasUrl = appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY, null);
-
-            if (sasUrl == null)
-            {
-                Log.e(LOG_TAG, "One of the values were null when trying to create a new rclone config file");
-                return;
-            }
-
-            final String configNameWithBracketsEntry = "[" + SyncMonkeyConstants.AZURE_CONFIG_NAME + "]" + System.lineSeparator();
-            final String typeEntry = "type = " + SyncMonkeyConstants.AZURE_REMOTE_TYPE + System.lineSeparator();
-            final String sasUrlEntry = "sas_url = " + sasUrl + System.lineSeparator();
-
-            if (Log.isLoggable(LOG_TAG, Log.INFO))
-            {
-                Log.i(LOG_TAG, "configNameWithBracketsEntry=" + configNameWithBracketsEntry);
-                Log.i(LOG_TAG, "typeEntry=" + typeEntry);
-            }
-
-            privateAppRcloneConfigFileOutputStream.write(configNameWithBracketsEntry.getBytes());
-            privateAppRcloneConfigFileOutputStream.write(typeEntry.getBytes());
-            privateAppRcloneConfigFileOutputStream.write(sasUrlEntry.getBytes());
-
-            privateAppRcloneConfigFileOutputStream.flush();
-        } catch (FileNotFoundException e)
-        {
-            final String message = "The " + SyncMonkeyConstants.RCLONE_CONFIG_FILE + " file was not found in the app's assets directory";
-            Log.e(LOG_TAG, message, e);
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        } catch (IOException e)
-        {
-            final String message = "Could not create the " + SyncMonkeyConstants.RCLONE_CONFIG_FILE + " file";
-            Log.e(LOG_TAG, message, e);
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Copies the {@link SyncMonkeyConstants#RCLONE_CONFIG_FILE} from the assets directory to the app's private storage area.
-     */
-    private static synchronized void copyRcloneConfigFile(Context context)
-    {
-        final File rcloneConfigFile = new File(context.getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE);
-
-        // The rclone.conf file does not exist, so copy it out of assets.
-        try (final InputStream assetRcloneConfigFileInputStream = context.getAssets().open(SyncMonkeyConstants.RCLONE_CONFIG_FILE);
-             final OutputStream privateAppRcloneConfigFileOutputStream = new FileOutputStream(rcloneConfigFile))
-        {
-            SyncMonkeyUtils.copyInputStreamToOutputStream(assetRcloneConfigFileInputStream, privateAppRcloneConfigFileOutputStream);
-        } catch (FileNotFoundException e)
-        {
-            final String message = "The " + SyncMonkeyConstants.RCLONE_CONFIG_FILE + " file was not found in the app's assets directory";
-            Log.e(LOG_TAG, message, e);
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        } catch (IOException e)
-        {
-            final String message = "Could not create the " + SyncMonkeyConstants.RCLONE_CONFIG_FILE + " file";
-            Log.e(LOG_TAG, message, e);
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Reads the SAS URL from the rclone.conf file after it has been written
+     * Reads the SAS URL from the settings
      * and displays the message about its expiration date in the UI.
      * <p>
-     * This requires reading the "sas_url" variable from the config file and extracting
+     * This requires reading the "sas_url" variable and extracting
      * some information from its query params. More info on SAS URLs can be found here:
      * https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas#specifying-the-signature-validity-interval
      *
@@ -560,12 +478,10 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
      */
     private void checkSasUrlExpiration()
     {
-        final Path rcloneConfPath = new File(getFilesDir(), SyncMonkeyConstants.RCLONE_CONFIG_FILE).toPath();
-        final Optional<Uri> sasUrl = SyncMonkeyUtils.getSasUrlFromConfFile(rcloneConfPath);
-
-        if (sasUrl.isPresent())
+        try
         {
-            final Uri unwrappedUrl = sasUrl.get();
+            String sasUrl = appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY);
+            final Uri unwrappedUrl = Uri.parse(sasUrl);
             final ZonedDateTime signedStart = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("st"));
             final ZonedDateTime signedExpiry = SyncMonkeyUtils.parseSasUrlDate(unwrappedUrl.getQueryParameter("se"));
 
@@ -582,9 +498,9 @@ public class SyncMonkeyMainActivity extends AppCompatActivity
             final String message = expirationPair.second;
 
             if (valid != null && message != null) setExpirationMessage(valid, message);
-        } else
+        } catch (ItemNotFoundException e)
         {
-            Log.i(LOG_TAG, "No sas_url found in rclone.conf, skipping expiration message");
+            Log.e(LOG_TAG, "Could not find SAS URL in settings, skipping expiration message");
             setExpirationMessage(false, SyncMonkeyConstants.NO_SAS_URL_WARNING);
         }
     }

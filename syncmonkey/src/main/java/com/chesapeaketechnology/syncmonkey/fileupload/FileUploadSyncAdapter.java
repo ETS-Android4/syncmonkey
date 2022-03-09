@@ -16,20 +16,15 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 
-import com.chesapeaketechnology.syncmonkey.BuildConfig;
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyConstants;
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyMainActivity;
 import com.chesapeaketechnology.syncmonkey.SyncMonkeyUtils;
-import com.chesapeaketechnology.syncmonkey.fileupload.Items.RemoteItem;
 
 import net.grandcentrix.tray.AppPreferences;
 import net.grandcentrix.tray.TrayPreferences;
 import net.grandcentrix.tray.core.TrayStorage;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 
 /**
@@ -40,7 +35,7 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 {
     private static final String LOG_TAG = FileUploadSyncAdapter.class.getSimpleName();
 
-    private final Rclone rclone;
+    private final AzureBlob azureBlob;
     private final String dataDirectoryPath;
     private final AppPreferences appPreferences;
     private final TrayPreferences statusInformation;
@@ -64,9 +59,16 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
         appPreferences = new AppPreferences(context);
         statusInformation = new TrayPreferences(context, SyncMonkeyConstants.TRAY_STATUS_MODULE, 1, TrayStorage.Type.DEVICE);
-
-        rclone = new Rclone(context);
         dataDirectoryPath = Environment.getExternalStorageDirectory().getPath() + "/";
+        final String sasUrl = appPreferences.getString(SyncMonkeyConstants.PROPERTY_AZURE_SAS_URL_KEY, "");
+        if (sasUrl != null && !sasUrl.isEmpty())
+        {
+            azureBlob = new AzureBlob(sasUrl);
+        } else
+        {
+            Log.w(LOG_TAG, "Did not find the Azure SAS URL Property, syncs will not succeed.");
+            azureBlob = null;
+        }
     }
 
     /**
@@ -275,17 +277,15 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
             updateSyncStatus("Sync preference checks passed, starting upload ...");
 
-            final RemoteItem remote = new RemoteItem(SyncMonkeyConstants.AZURE_CONFIG_NAME + SyncMonkeyConstants.COLON_SEPARATOR + containerName, SyncMonkeyConstants.AZURE_REMOTE_TYPE);
-
             // First, sync any files in the private shared directory
             final String privateAppFilesSyncDirectory = new File(getContext().getFilesDir(), SyncMonkeyConstants.PRIVATE_SHARED_SYNC_DIRECTORY).getPath();
-            boolean anyDirectorySuccess = processDirectoryForUpload(privateAppFilesSyncDirectory, deviceId, remote);
+            boolean anyDirectorySuccess = processDirectoryForUpload(privateAppFilesSyncDirectory, deviceId);
 
             for (String relativeSyncDirectory : localSyncDirectories.split(SyncMonkeyConstants.COLON_SEPARATOR))
             {
                 if (relativeSyncDirectory.isEmpty()) continue;
 
-                final boolean success = processDirectoryForUpload(dataDirectoryPath + relativeSyncDirectory, deviceId, remote);
+                final boolean success = processDirectoryForUpload(dataDirectoryPath + relativeSyncDirectory, deviceId);
                 if (success) anyDirectorySuccess = success;
             }
 
@@ -299,9 +299,8 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
      *
      * @param syncDirectoryPath The directory to sync.
      * @param deviceId          The device ID which will be used as the folder name on the remote server.
-     * @param remote            The remote server to sync the files with.
      */
-    private boolean processDirectoryForUpload(String syncDirectoryPath, String deviceId, RemoteItem remote)
+    private boolean processDirectoryForUpload(String syncDirectoryPath, String deviceId)
     {
         if (Log.isLoggable(LOG_TAG, Log.INFO))
         {
@@ -310,66 +309,14 @@ public class FileUploadSyncAdapter extends AbstractThreadedSyncAdapter
 
         // The destination path ends up being /deviceId/directParentDir (for example: "Eliza-Android-S7/NetworkSurveyData").
         final String[] parentDirectories = syncDirectoryPath.split("/");
-        final String destinationPath = "/" + deviceId + "/" + parentDirectories[parentDirectories.length - 1];
+        final String destinationPath = "/" + deviceId + "/" + parentDirectories[parentDirectories.length - 1] +"/";
 
-        Process currentProcess = rclone.uploadFile(remote, destinationPath, syncDirectoryPath);
-
-        if (currentProcess != null)
+        if (azureBlob != null)
         {
-            // Only print out the process stdout if the app is a debug APK
-            if (BuildConfig.DEBUG)
-            {
-                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getErrorStream())))
-                {
-                    String line;
-                    //String notificationContent = "";
-                    //String[] notificationBigText = new String[5];
-                    while ((line = reader.readLine()) != null)
-                    {
-                        Log.d(LOG_TAG, line);
-
-                        // This code might be useful to show toasts with specific transfer information
-                        /*if (line.startsWith("Transferred:") && !line.matches("Transferred:\\s+\\d+\\s+/\\s+\\d+,\\s+\\d+%$"))
-                        {
-                            String s = line.substring(12).trim();
-                            notificationBigText[0] = s;
-                            notificationContent = s;
-                        } else if (line.startsWith(" *"))
-                        {
-                            String s = line.substring(2).trim();
-                            notificationBigText[1] = s;
-                        } else if (line.startsWith("Errors:"))
-                        {
-                            notificationBigText[2] = line;
-                        } else if (line.startsWith("Checks:"))
-                        {
-                            notificationBigText[3] = line;
-                        } else if (line.matches("Transferred:\\s+\\d+\\s+/\\s+\\d+,\\s+\\d+%$"))
-                        {
-                            notificationBigText[4] = line;
-                        } else if (isLoggingEnable && line.startsWith("ERROR :"))
-                        {
-                            log2File.log(line);
-                        }*/
-                    }
-                } catch (IOException e)
-                {
-                    Log.e(LOG_TAG, "Caught an exception when trying to read the output from the upload process", e);
-                }
-            }
-
-            try
-            {
-                currentProcess.waitFor();
-            } catch (InterruptedException e)
-            {
-                Log.e(LOG_TAG, "Caught an exception when waiting for the rclone upload process to finish", e);
-            }
+            azureBlob.uploadFile(syncDirectoryPath, destinationPath);
         }
 
-        boolean result = currentProcess != null && currentProcess.exitValue() == 0;
-        Log.i(LOG_TAG, "rclone upload result=" + result);
-        return result;
+        return true;
     }
 
     /**
